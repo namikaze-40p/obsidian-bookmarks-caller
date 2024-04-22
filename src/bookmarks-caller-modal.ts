@@ -2,7 +2,7 @@ import { App, Modal, TFile, setIcon } from 'obsidian';
 import { Settings } from './settings';
 import { BOOKMARK_ITEM, HISTORY } from './types';
 
-const NOT_SUPPORTED_TYPES = ['search', 'graph'];
+const NOT_SUPPORTED_TYPES = ['folder', 'search', 'graph'];
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
@@ -106,6 +106,9 @@ export class BookmarksCallerModal extends Modal {
 				}
 
 				let name = item.title;
+				if (!name && item.type === 'folder') {
+					name = item.path ?? '';
+				}
 				if (!name && item.type === 'file') {
 					const file = this.app.vault.getAbstractFileByPath(item.path || '') as TFile;
 					name = file.basename;
@@ -182,6 +185,8 @@ export class BookmarksCallerModal extends Modal {
 	private getTypeIcon(bookmark: BOOKMARK_ITEM): string {
 		switch (bookmark.type) {
 			case 'group':
+				return 'chevron-right';
+			case 'folder':
 				return 'folder-closed';
 			case 'file':
 				if (bookmark.subpath) {
@@ -218,6 +223,7 @@ export class BookmarksCallerModal extends Modal {
 				break;
 			}
 			// Not supported
+			case 'folder':
 			case 'search':
 			case 'graph':
 			default:
@@ -336,6 +342,7 @@ export class BookmarksCallerModal extends Modal {
 						break;
 					}
 					// Not supported
+					case 'folder':
 					case 'search':
 					case 'graph':
 					default:

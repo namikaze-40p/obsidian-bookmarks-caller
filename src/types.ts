@@ -12,7 +12,7 @@ export type APP_WITH_CORE_PLUGINS = App & {
 	},
 };
 
-export type BOOKMARK_TYPE = 'group' | 'file' | 'graph' | 'search';
+export type BOOKMARK_TYPE = 'group' | 'folder' | 'file' | 'graph' | 'search';
 
 export type BOOKMARK_ITEM = {
 	cTime: number;
