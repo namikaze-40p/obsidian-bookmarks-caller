@@ -105,14 +105,7 @@ export class BookmarksCallerModal extends Modal {
 					itemBtnEl.setAttr('readonly', '');
 				}
 
-				let name = item.title;
-				if (!name && item.type === 'folder') {
-					name = item.path ?? '';
-				}
-				if (!name && item.type === 'file') {
-					const file = this.app.vault.getAbstractFileByPath(item.path || '') as TFile;
-					name = file.basename;
-				}
+				const name = this.getDisplayName(item);
 				itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
 
 				this.buttonMap.set(getButtonId(item), itemBtnEl);
@@ -198,6 +191,26 @@ export class BookmarksCallerModal extends Modal {
 				return 'search';
 			case 'graph':
 				return 'git-fork';
+			default:
+				return '';
+		}
+	}
+
+	private getDisplayName(bookmark: BOOKMARK_ITEM): string {
+		if (bookmark.title) {
+			return bookmark.title;
+		}
+		switch (bookmark.type) {
+			case 'folder':
+				return bookmark.path ?? '';
+			case 'file': {
+				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '') as TFile;
+				return file.basename;
+			}
+			case 'search':
+				return bookmark.query ?? '';
+			case 'group':
+			case 'graph':
 			default:
 				return '';
 		}
