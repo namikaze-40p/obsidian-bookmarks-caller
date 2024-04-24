@@ -204,8 +204,8 @@ export class BookmarksCallerModal extends Modal {
 			case 'folder':
 				return bookmark.path ?? '';
 			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '') as TFile;
-				return file.basename;
+				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
+				return file instanceof TFile ? file.basename : '';
 			}
 			case 'search':
 				return bookmark.query ?? '';
@@ -230,8 +230,10 @@ export class BookmarksCallerModal extends Modal {
 				break;
 			}
 			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '') as TFile;
-				this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
+				if (file instanceof TFile) {
+					this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+				}
 				this.close();
 				break;
 			}
@@ -350,8 +352,10 @@ export class BookmarksCallerModal extends Modal {
 						this.openAllFiles(bookmark.items || []);
 						break;
 					case 'file': {
-						const file = this.app.vault.getAbstractFileByPath(bookmark.path || '') as TFile;
-						await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+						const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
+						if (file instanceof TFile) {
+							await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+						}
 						break;
 					}
 					// Not supported
@@ -365,8 +369,10 @@ export class BookmarksCallerModal extends Modal {
 			});
 		} else {
 			bookmarks.filter(item => item.type === 'file').reverse().forEach(async bookmark => {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '') as TFile;
-				await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
+				if (file instanceof TFile) {
+					await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+				}
 			});
 		}
 	}
