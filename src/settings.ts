@@ -4,7 +4,7 @@ import { createStyles, deleteStyles } from './util';
 
 export interface Settings {
 	recursivelyOpen: boolean;
-	showPaginationButton: boolean;
+	showFooterButtons: boolean;
 	showLegend: boolean;
 	focusColor: string;
 	characters: string;
@@ -14,7 +14,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
 	recursivelyOpen: true,
-	showPaginationButton: true,
+	showFooterButtons: true,
 	showLegend: true,
 	focusColor: '#00b4e0',
 	characters: 'asdfghjkl;',
@@ -58,11 +58,11 @@ export class SettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName(`Show pagination button`)
-			.setDesc('When enabled, show pagination button on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.showPaginationButton)
+			.setName(`Show footer buttons`)
+			.setDesc('When enabled, show footer buttons on modal.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.showFooterButtons)
 				.onChange(async value => {
-					this.plugin.settings.showPaginationButton = value;
+					this.plugin.settings.showFooterButtons = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);

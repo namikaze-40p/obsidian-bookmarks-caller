@@ -120,14 +120,14 @@ export class BookmarksCallerModal extends Modal {
 	private generateFooter(contentEl: HTMLElement): void {
 		contentEl.createDiv('bc-footer', el => {
 			el.createDiv('bc-page-nav', navEl => {
-				const backBtnEl = navEl.createEl('button');
-				setIcon(backBtnEl, 'undo-2');
-				backBtnEl.createSpan('').setText('Back');
-				backBtnEl.setAttr('tabIndex', -1);
-				backBtnEl.addClass('bc-nav-btn');
-				backBtnEl.addEventListener('click', () => this.backToParentLayer());
+				if (this.settings.showFooterButtons && this.currentLayerItems.length > this.chars.length) {
+					const backBtnEl = navEl.createEl('button');
+					setIcon(backBtnEl, 'undo-2');
+					backBtnEl.createSpan('').setText('Back');
+					backBtnEl.setAttr('tabIndex', -1);
+					backBtnEl.addClass('bc-nav-btn');
+					backBtnEl.addEventListener('click', () => this.backToParentLayer());
 
-				if (this.settings.showPaginationButton && this.currentLayerItems.length > this.chars.length) {
 					const prevBtnEl = navEl.createEl('button', { text: '←' });
 					prevBtnEl.setAttr('tabIndex', -1);
 					prevBtnEl.addClass('bc-nav-btn');
@@ -137,17 +137,17 @@ export class BookmarksCallerModal extends Modal {
 					nextBtnEl.setAttr('tabIndex', -1);
 					nextBtnEl.addClass('bc-nav-btn');
 					nextBtnEl.addEventListener('click', () => this.keyupArrowKeys(RIGHT_KEY));
-				}
 
-				const openBtnEl = navEl.createEl('button');
-				setIcon(openBtnEl, 'square-stack');
-				openBtnEl.createSpan('').setText('All');
-				openBtnEl.setAttr('tabIndex', -1);
-				openBtnEl.addClass('bc-nav-btn');
-				openBtnEl.addEventListener('click', () => {
-					this.openAllFiles(this.currentLayerItems);
-					this.close();
-				});
+					const openBtnEl = navEl.createEl('button');
+					setIcon(openBtnEl, 'square-stack');
+					openBtnEl.createSpan('').setText('All');
+					openBtnEl.setAttr('tabIndex', -1);
+					openBtnEl.addClass('bc-nav-btn');
+					openBtnEl.addEventListener('click', () => {
+						this.openAllFiles(this.currentLayerItems);
+						this.close();
+					});
+				}
 			});
 
 			if (this.settings.showLegend) {
