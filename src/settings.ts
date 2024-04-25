@@ -3,7 +3,7 @@ import BookmarkCaller from './main';
 import { createStyles, deleteStyles } from './util';
 
 export interface Settings {
-	recursiveOpen: boolean;
+	recursivelyOpen: boolean;
 	showPaginationButton: boolean;
 	showLegend: boolean;
 	focusColor: string;
@@ -13,7 +13,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-	recursiveOpen: true,
+	recursivelyOpen: true,
 	showPaginationButton: true,
 	showLegend: true,
 	focusColor: '#00b4e0',
@@ -48,11 +48,11 @@ export class SettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName(`Recursive open files under folders`)
-			.setDesc('When enabled,  recursive open files under folders when selected “All” button.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.recursiveOpen)
+			.setName(`Recursively open files under folders`)
+			.setDesc('When enabled, recursively open files under folders when selected “All” button.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.recursivelyOpen)
 				.onChange(async value => {
-					this.plugin.settings.recursiveOpen = value;
+					this.plugin.settings.recursivelyOpen = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);

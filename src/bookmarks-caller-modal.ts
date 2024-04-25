@@ -85,7 +85,7 @@ export class BookmarksCallerModal extends Modal {
 		this.pagePosition = pagePosition;
 
 		if (!this.viewItems.length) {
-			contentEl.createSpan().setText('Not found items in this folder...');
+			contentEl.createSpan().setText('No items found in this folder.');
 		}
 
 		this.viewItems.forEach((item, idx) => {
@@ -345,7 +345,7 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private openAllFiles(bookmarks: BOOKMARK_ITEM[]): void {
-		if (this.settings.recursiveOpen) {
+		if (this.settings.recursivelyOpen) {
 			[...bookmarks].reverse().forEach(async bookmark => {
 				switch (bookmark.type) {
 					case 'group':
