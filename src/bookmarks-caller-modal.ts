@@ -120,7 +120,7 @@ export class BookmarksCallerModal extends Modal {
 	private generateFooter(contentEl: HTMLElement): void {
 		contentEl.createDiv('bc-footer', el => {
 			el.createDiv('bc-page-nav', navEl => {
-				if (this.settings.showFooterButtons && this.currentLayerItems.length > this.chars.length) {
+				if (this.settings.showFooterButtons) {
 					const backBtnEl = navEl.createEl('button');
 					setIcon(backBtnEl, 'undo-2');
 					backBtnEl.createSpan('').setText('Back');
@@ -128,15 +128,17 @@ export class BookmarksCallerModal extends Modal {
 					backBtnEl.addClass('bc-nav-btn');
 					backBtnEl.addEventListener('click', () => this.backToParentLayer());
 
-					const prevBtnEl = navEl.createEl('button', { text: '←' });
-					prevBtnEl.setAttr('tabIndex', -1);
-					prevBtnEl.addClass('bc-nav-btn');
-					prevBtnEl.addEventListener('click', () => this.keyupArrowKeys(LEFT_KEY));
-					
-					const nextBtnEl = navEl.createEl('button', { text: '→' });
-					nextBtnEl.setAttr('tabIndex', -1);
-					nextBtnEl.addClass('bc-nav-btn');
-					nextBtnEl.addEventListener('click', () => this.keyupArrowKeys(RIGHT_KEY));
+					if (this.currentLayerItems.length > this.chars.length) {
+						const prevBtnEl = navEl.createEl('button', { text: '←' });
+						prevBtnEl.setAttr('tabIndex', -1);
+						prevBtnEl.addClass('bc-nav-btn');
+						prevBtnEl.addEventListener('click', () => this.keyupArrowKeys(LEFT_KEY));
+						
+						const nextBtnEl = navEl.createEl('button', { text: '→' });
+						nextBtnEl.setAttr('tabIndex', -1);
+						nextBtnEl.addClass('bc-nav-btn');
+						nextBtnEl.addEventListener('click', () => this.keyupArrowKeys(RIGHT_KEY));
+					}
 
 					const openBtnEl = navEl.createEl('button');
 					setIcon(openBtnEl, 'square-stack');
