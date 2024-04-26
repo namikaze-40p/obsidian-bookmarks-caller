@@ -48,8 +48,8 @@ export class SettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName(`Recursively open files under folders`)
-			.setDesc('When enabled, recursively open files under folders when selected “All” button.')
+			.setName(`Recursively open files under groups`)
+			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
 			.addToggle(toggle => toggle.setValue(this.plugin.settings.recursivelyOpen)
 				.onChange(async value => {
 					this.plugin.settings.recursivelyOpen = value;

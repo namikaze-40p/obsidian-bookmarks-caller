@@ -14,7 +14,7 @@ This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmar
     1. Press the one-letter key displayed to the left of the item name. (**recommend**)
     1. Move the cursor with arrow keys and select the item.
     1. Click on the item name with the mouse cursor.
-1. If you want to open all of the bookmarks in the current folder, in one of the following ways.
+1. If you want to open all of the bookmarks in the current group, in one of the following ways.
     1. Using shortcut key. (**recommend**)
     1. Click "All" button.
 

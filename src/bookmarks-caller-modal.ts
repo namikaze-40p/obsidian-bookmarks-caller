@@ -11,10 +11,10 @@ const RIGHT_KEY = 'ArrowRight';
 const FOOTER_ITEMS = [
 	{ keys: '↑ | ↓', description: 'Move focus' },
 	{ keys: '← | →', description: 'Switch pages' },
-	{ keys: 'back', description: 'Back to parent folder' },
+	{ keys: 'back', description: 'Back to parent group' },
 	{ keys: 'Enter | Space', description: 'Open focused item' },
 	{ keys: 'chars', description: 'Quickly open item' },
-	{ keys: 'all', description: 'Open all items in current folder' },
+	{ keys: 'all', description: 'Open all items in current group' },
 ];
 const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 	if (!bookmark) {
@@ -31,7 +31,7 @@ export class BookmarksCallerModal extends Modal {
 	buttonMap: Map<string, HTMLButtonElement> = new Map();
 	pagePosition = 0;
 	focusPosition = 0;
-	folders: string[] = ['.'];
+	groups: string[] = ['.'];
 	buttonsViewEl: HTMLDivElement;
 	headerTextEl: HTMLSpanElement;
 	eventListenerFunc: (ev: KeyboardEvent) => void;
@@ -86,7 +86,7 @@ export class BookmarksCallerModal extends Modal {
 		this.pagePosition = pagePosition;
 
 		if (!this.viewItems.length) {
-			contentEl.createSpan().setText('No items found in this folder.');
+			contentEl.createSpan().setText('No items found in this group.');
 		}
 
 		this.viewItems.forEach((item, idx) => {
@@ -172,7 +172,7 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private updateHeaderText(): void {
-		const path = this.folders.length === 1 ? `${this.folders.at(0)}/` : `.../${this.folders.at(-1)}/`;
+		const path = this.groups.length === 1 ? `${this.groups.at(0)}/` : `.../${this.groups.at(-1)}/`;
 		this.headerTextEl.setText(path);
 	}
 
@@ -226,7 +226,7 @@ export class BookmarksCallerModal extends Modal {
 				history.focusPosition = idx;
 	
 				this.currentLayerItems = bookmark.items || [];
-				this.folders.push(`${bookmark.title}`);
+				this.groups.push(`${bookmark.title}`);
 				this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 				this.generateButtons(this.buttonsViewEl);
 				break;
@@ -337,7 +337,7 @@ export class BookmarksCallerModal extends Modal {
 
 	private backToParentLayer(): void {
 		if (this.histories.length > 1) {
-			this.folders.pop();
+			this.groups.pop();
 			this.histories.pop();
 
 			const { items, pagePosition, focusPosition} = this.histories.at(-1) as HISTORY;
