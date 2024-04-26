@@ -47,6 +47,8 @@ export class SettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		containerEl.createEl('h2').setText('Bookmarks Caller - Settings');
+
 		new Setting(containerEl)
 			.setName(`Recursively open files under groups`)
 			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
