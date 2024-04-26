@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, SettingTab, Settings } from './settings';
 import { APP_WITH_CORE_PLUGINS } from './types';
 import { BookmarksCallerModal } from './bookmarks-caller-modal';
 import { MessageModal } from './message-modal';
+import { BcTmpView, VIEW_TYPE_BC_TMP } from './view';
 
 export default class BookmarkCaller extends Plugin {
 	settings: Settings;
@@ -10,6 +11,11 @@ export default class BookmarkCaller extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+
+		this.registerView(
+			VIEW_TYPE_BC_TMP,
+			(leaf) => new BcTmpView(leaf)
+		);
 
 		this.addRibbonIcon('bookmark', 'Open bookmarks caller', () => this.openBookmarksCallerModal());
 
@@ -26,6 +32,7 @@ export default class BookmarkCaller extends Plugin {
 
 	onunload() {
 		this.settingTab.updateStyleSheet(true);
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
 	}
 
 	async loadSettings() {
