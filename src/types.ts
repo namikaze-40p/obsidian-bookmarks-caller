@@ -1,4 +1,4 @@
-import { App } from "obsidian";
+import { App } from 'obsidian';
 
 export type APP_WITH_CORE_PLUGINS = App & {
 	internalPlugins: {

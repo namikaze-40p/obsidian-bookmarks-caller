@@ -12,6 +12,7 @@
 	
 	.bc-setting-shortcut-key-edit {
 		background-color: var(--interactive-accent) !important;
+		color: var(--text-on-accent);
 		width: 8rem !important;
 	}
 }
