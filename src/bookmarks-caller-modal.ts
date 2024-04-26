@@ -1,6 +1,6 @@
 import { App, Modal, TFile, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BOOKMARK_ITEM, HISTORY } from './types';
+import { BOOKMARK_ITEM } from './types';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const NOT_SUPPORTED_TYPES = ['folder', 'search', 'graph'];
@@ -22,6 +22,12 @@ const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 	}
 	const idPrefix = (bookmark.title ?? bookmark.path) as string;
 	return `${idPrefix}_${bookmark.cTime}`;
+}
+
+export type HISTORY = {
+	items: BOOKMARK_ITEM[];
+	pagePosition: number;
+	focusPosition: number;
 }
 
 export class BookmarksCallerModal extends Modal {
@@ -220,7 +226,6 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private async clickItemButton(bookmark: BOOKMARK_ITEM, idx: number): Promise<void> {
-		this.app.workspace.iterateAllLeaves(leaf => console.log(leaf.getViewState()));
 		switch (bookmark.type) {
 			case 'group': {
 				const history = this.histories.at(-1) as HISTORY;

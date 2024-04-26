@@ -23,9 +23,3 @@ export type BOOKMARK_ITEM = {
 	subpath?: string;
 	query?: string;
 }
-
-export type HISTORY = {
-	items: BOOKMARK_ITEM[];
-	pagePosition: number;
-	focusPosition: number;
-}
