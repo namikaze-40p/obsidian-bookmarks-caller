@@ -5,7 +5,7 @@ import { createStyles, deleteStyles } from './util';
 export interface Settings {
 	recursivelyOpen: boolean;
 	showFooterButtons: boolean;
-	showLegend: boolean;
+	showLegends: boolean;
 	focusColor: string;
 	characters: string;
 	allBtn: string;
@@ -15,7 +15,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
 	recursivelyOpen: true,
 	showFooterButtons: true,
-	showLegend: true,
+	showLegends: true,
 	focusColor: '#00b4e0',
 	characters: 'asdfghjkl;',
 	allBtn: '/',
@@ -68,11 +68,11 @@ export class SettingTab extends PluginSettingTab {
 			);
 		
 		new Setting(containerEl)
-			.setName(`Show legend`)
-			.setDesc('When enabled, show legend on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.showLegend)
+			.setName(`Show legends`)
+			.setDesc('When enabled, show legends on modal.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.showLegends)
 				.onChange(async value => {
-					this.plugin.settings.showLegend = value;
+					this.plugin.settings.showLegends = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);

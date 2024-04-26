@@ -150,7 +150,7 @@ export class BookmarksCallerModal extends Modal {
 				}
 			});
 
-			if (this.settings.showLegend) {
+			if (this.settings.showLegends) {
 				FOOTER_ITEMS.forEach(item => {
 					el.createDiv('bc-legend', el => {
 						let keys = item.keys;
