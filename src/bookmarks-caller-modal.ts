@@ -1,9 +1,10 @@
 import { App, Modal, TFile, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BOOKMARK_ITEM } from './types';
+import { BOOKMARK_ITEM, GLOBAL_SEARCH_PLUGIN_INSTANCE } from './types';
 import { VIEW_TYPE_BC_TMP } from './view';
+import { getEnabledPluginById } from './util';
 
-const NOT_SUPPORTED_TYPES = ['folder', 'search', 'graph'];
+const NOT_SUPPORTED_TYPES = [`folder`, 'graph'];
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
@@ -22,7 +23,11 @@ const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 	}
 	const idPrefix = (bookmark.title ?? bookmark.path) as string;
 	return `${idPrefix}_${bookmark.cTime}`;
-}
+};
+
+type CORE_PLUGINS = {
+	globalSearch: GLOBAL_SEARCH_PLUGIN_INSTANCE | null,
+};
 
 export type HISTORY = {
 	items: BOOKMARK_ITEM[];
@@ -32,6 +37,9 @@ export type HISTORY = {
 
 export class BookmarksCallerModal extends Modal {
 	settings: Settings;
+	corePlugins: CORE_PLUGINS = {
+		globalSearch: null,
+	};
 	chars: string[] = [];
 	histories: HISTORY[] = [];
 	buttonMap: Map<string, HTMLButtonElement> = new Map();
@@ -60,6 +68,8 @@ export class BookmarksCallerModal extends Modal {
 		this.chars = [...this.settings.characters];
 		this.currentLayerItems = bookmarks;
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
+
+		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GLOBAL_SEARCH_PLUGIN_INSTANCE;
 	}
 
 	onOpen() {
@@ -246,9 +256,15 @@ export class BookmarksCallerModal extends Modal {
 				this.close();
 				break;
 			}
+			case 'search': {
+				if (this.corePlugins.globalSearch) {
+					this.corePlugins.globalSearch.openGlobalSearch(bookmark.query ?? '');
+				}
+				this.close();
+				break;
+			}
 			// Not supported
 			case 'folder':
-			case 'search':
 			case 'graph':
 			default:
 				// nop

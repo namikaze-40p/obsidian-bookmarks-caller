@@ -1,4 +1,11 @@
+import { App } from "obsidian";
+import { APP_WITH_CORE_PLUGINS, PLUGIN_INSTANCE } from "./types";
+
 const STYLES_ID = 'bookmarks-caller-styles';
+
+export const getEnabledPluginById = (app: App, pluginId: string): PLUGIN_INSTANCE | null => {
+	return (app as APP_WITH_CORE_PLUGINS)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
+};
 
 export const deleteStyles = () => {
 	const styleElm = document.getElementById(STYLES_ID);
