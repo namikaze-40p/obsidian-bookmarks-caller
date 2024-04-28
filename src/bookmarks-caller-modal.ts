@@ -353,44 +353,32 @@ export class BookmarksCallerModal extends Modal {
 		}
 	}
 
-	private async openAllFiles(bookmarks: BOOKMARK_ITEM[]): Promise<void> {
-		const mdLeaves = this.app.workspace.getLeavesOfType('markdown');
-		const mdLeaf = mdLeaves.length ? mdLeaves[0] : null;
-		if (!mdLeaf) {
-			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
-		}
-		if (this.settings.recursivelyOpen) {
-			[...bookmarks].reverse().forEach(async bookmark => {
-				switch (bookmark.type) {
-					case 'group':
-						await this.openAllFiles(bookmark.items || []);
-						break;
-					case 'file': {
-						const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-						if (file instanceof TFile) {
-							await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-						}
-						break;
+	private async openAllFiles(items: BOOKMARK_ITEM[], isTeardown = true): Promise<void> {
+		await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
+		const bookmarks = this.settings.recursivelyOpen ? items : items.filter(item => item.type === 'file');
+		for (const bookmark of bookmarks) {
+			switch (bookmark.type) {
+				case 'group':
+					await this.openAllFiles(bookmark.items || [], false);
+					break;
+				case 'file': {
+					const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
+					if (file instanceof TFile) {
+						await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
 					}
-					// Not supported
-					case 'folder':
-					case 'search':
-					case 'graph':
-					default:
-						// nop
-						break;
+					break;
 				}
-			});
-		} else {
-			bookmarks.filter(item => item.type === 'file').reverse().forEach(async bookmark => {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-				if (file instanceof TFile) {
-					await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-				}
-			});
+				// Not supported
+				case 'folder':
+				case 'search':
+				case 'graph':
+				default:
+					// nop
+					break;
+			}
 		}
 
-		if (!mdLeaf) {
+		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
 		}
 	}
