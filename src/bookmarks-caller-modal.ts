@@ -161,10 +161,7 @@ export class BookmarksCallerModal extends Modal {
 					openBtnEl.createSpan('').setText('All');
 					openBtnEl.setAttr('tabIndex', -1);
 					openBtnEl.addClass('bc-nav-btn');
-					openBtnEl.addEventListener('click', () => {
-						this.openAllFiles(this.currentLayerItems);
-						this.close();
-					});
+					openBtnEl.addEventListener('click', () => this.openAllFiles(this.currentLayerItems));
 				}
 			});
 
@@ -294,7 +291,6 @@ export class BookmarksCallerModal extends Modal {
 		if (ev.key === this.settings.allBtn) {
 			this.openAllFiles(this.currentLayerItems);
 			ev.preventDefault();
-			this.close();
 			return;
 		}
 	}
@@ -370,7 +366,9 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private async openAllFiles(items: BOOKMARK_ITEM[], isTeardown = true): Promise<void> {
-		await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
+		if (isTeardown) {
+			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
+		}
 		const bookmarks = this.settings.recursivelyOpen ? items : items.filter(item => item.type === 'file');
 		for (const bookmark of bookmarks) {
 			switch (bookmark.type) {
@@ -393,9 +391,9 @@ export class BookmarksCallerModal extends Modal {
 					break;
 			}
 		}
-
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
+			this.close();
 		}
 	}
 }
