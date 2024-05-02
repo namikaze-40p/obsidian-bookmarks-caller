@@ -15,7 +15,7 @@ const FOOTER_ITEMS = [
 	{ keys: 'back', description: 'Back to parent group' },
 	{ keys: 'Enter | Space', description: 'Open focused item' },
 	{ keys: 'chars', description: 'Quickly open item' },
-	{ keys: 'all', description: 'Open all items in current group' },
+	{ keys: 'all', description: 'Open all files in current group' },
 ];
 const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 	if (!bookmark) {
