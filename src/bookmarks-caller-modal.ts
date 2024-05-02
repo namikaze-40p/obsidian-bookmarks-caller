@@ -1,10 +1,10 @@
-import { App, Modal, TFile, setIcon } from 'obsidian';
+import { App, Modal, TFile, TFolder, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BOOKMARK_ITEM, GLOBAL_SEARCH_PLUGIN_INSTANCE } from './types';
+import { BOOKMARK_ITEM, FILE_EXPLORER_PLUGIN_INSTANCE, GLOBAL_SEARCH_PLUGIN_INSTANCE } from './types';
 import { VIEW_TYPE_BC_TMP } from './view';
 import { getEnabledPluginById } from './util';
 
-const NOT_SUPPORTED_TYPES = [`folder`, 'graph'];
+const NOT_SUPPORTED_TYPES = ['graph'];
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
@@ -26,6 +26,7 @@ const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 };
 
 type CORE_PLUGINS = {
+	fileExplorer: FILE_EXPLORER_PLUGIN_INSTANCE | null,
 	globalSearch: GLOBAL_SEARCH_PLUGIN_INSTANCE | null,
 };
 
@@ -38,6 +39,7 @@ export type HISTORY = {
 export class BookmarksCallerModal extends Modal {
 	settings: Settings;
 	corePlugins: CORE_PLUGINS = {
+		fileExplorer: null,
 		globalSearch: null,
 	};
 	chars: string[] = [];
@@ -69,6 +71,7 @@ export class BookmarksCallerModal extends Modal {
 		this.currentLayerItems = bookmarks;
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 
+		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FILE_EXPLORER_PLUGIN_INSTANCE;
 		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GLOBAL_SEARCH_PLUGIN_INSTANCE;
 	}
 
@@ -253,6 +256,14 @@ export class BookmarksCallerModal extends Modal {
 				this.close();
 				break;
 			}
+			case 'folder': {
+				const folder = this.app.vault.getAbstractFileByPath(bookmark.path ?? '');
+				if (folder instanceof TFolder && this.corePlugins.fileExplorer) {
+					this.corePlugins.fileExplorer.revealInFolder(folder);
+				}
+				this.close();
+				break;
+			}
 			case 'search': {
 				if (this.corePlugins.globalSearch) {
 					this.corePlugins.globalSearch.openGlobalSearch(bookmark.query ?? '');
@@ -261,7 +272,6 @@ export class BookmarksCallerModal extends Modal {
 				break;
 			}
 			// Not supported
-			case 'folder':
 			case 'graph':
 			default:
 				// nop

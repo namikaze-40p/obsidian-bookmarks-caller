@@ -1,4 +1,4 @@
-import { App, Plugin } from 'obsidian';
+import { App, Plugin, TAbstractFile } from 'obsidian';
 
 export type APP_WITH_CORE_PLUGINS = App & {
 	internalPlugins: {
@@ -21,7 +21,9 @@ export type BOOKMARKS_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
 	items: BOOKMARK_ITEM[],
 };
 
-export type FILE_EXPLORER_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS;
+export type FILE_EXPLORER_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
+	revealInFolder: (path: TAbstractFile) => void,
+};
 
 export type GLOBAL_SEARCH_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
 	openGlobalSearch: (query: string) => void,
