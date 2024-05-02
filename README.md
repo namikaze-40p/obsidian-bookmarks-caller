@@ -23,13 +23,13 @@ This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmar
 
 > [!NOTE]
 >
-> - supported: The following bookmark types.
+> - Supported: The following bookmark types.
 >   - Bookmark a file
+>   - Bookmark a folder
 >   - Bookmark a search term
 >   - Bookmark a heading
 >   - Bookmark a block
 > - Not supported: The following bookmark types.
->   - Bookmark a folder
 >   - Bookmark a graph
 
 ## Installation
