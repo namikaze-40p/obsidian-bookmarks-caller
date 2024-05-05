@@ -27,10 +27,9 @@ This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmar
 >   - Bookmark a file
 >   - Bookmark a folder
 >   - Bookmark a search term
+>   - Bookmark a graph
 >   - Bookmark a heading
 >   - Bookmark a block
-> - Not supported: The following bookmark types.
->   - Bookmark a graph
 
 ## Installation
 
