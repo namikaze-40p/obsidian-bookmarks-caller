@@ -1,4 +1,4 @@
-import { App, Plugin, TAbstractFile } from 'obsidian';
+import { App, PaneType, Plugin, TAbstractFile } from 'obsidian';
 
 export type APP_WITH_CORE_PLUGINS = App & {
 	internalPlugins: {
@@ -19,6 +19,7 @@ type BASIC_PLUGIN_PARAMS = {
 
 export type BOOKMARKS_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
 	items: BOOKMARK_ITEM[],
+	openBookmark: (bookmark: BOOKMARK_ITEM, type: PaneType | boolean, eState?: { focus: boolean }) => Promise<void>,
 };
 
 export type FILE_EXPLORER_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {

@@ -1,10 +1,10 @@
 import { App, Modal, TFile, TFolder, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BOOKMARK_ITEM, FILE_EXPLORER_PLUGIN_INSTANCE, GLOBAL_SEARCH_PLUGIN_INSTANCE } from './types';
+import { BOOKMARKS_PLUGIN_INSTANCE, BOOKMARK_ITEM, FILE_EXPLORER_PLUGIN_INSTANCE, GLOBAL_SEARCH_PLUGIN_INSTANCE, GRAPH_PLUGIN_INSTANCE } from './types';
 import { VIEW_TYPE_BC_TMP } from './view';
 import { getEnabledPluginById } from './util';
 
-const NOT_SUPPORTED_TYPES = ['graph'];
+const VIEW_TYPE_EMPTY = 'empty'
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
@@ -26,8 +26,10 @@ const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 };
 
 type CORE_PLUGINS = {
+	bookmarks: BOOKMARKS_PLUGIN_INSTANCE | null,
 	fileExplorer: FILE_EXPLORER_PLUGIN_INSTANCE | null,
 	globalSearch: GLOBAL_SEARCH_PLUGIN_INSTANCE | null,
+	graph: GRAPH_PLUGIN_INSTANCE | null,
 };
 
 export type HISTORY = {
@@ -39,8 +41,10 @@ export type HISTORY = {
 export class BookmarksCallerModal extends Modal {
 	settings: Settings;
 	corePlugins: CORE_PLUGINS = {
+		bookmarks: null,
 		fileExplorer: null,
 		globalSearch: null,
+		graph: null,
 	};
 	chars: string[] = [];
 	histories: HISTORY[] = [];
@@ -64,15 +68,17 @@ export class BookmarksCallerModal extends Modal {
 		return this._currentLayerItems.slice(this.pagePosition * this.chars.length, this.chars.length + this.pagePosition * this.chars.length);
 	}
 
-	constructor(app: App, settings: Settings, bookmarks: BOOKMARK_ITEM[]) {
+	constructor(app: App, settings: Settings, bookmarksPlugin: BOOKMARKS_PLUGIN_INSTANCE) {
 		super(app);
 		this.settings = settings;
 		this.chars = [...this.settings.characters];
-		this.currentLayerItems = bookmarks;
+		this.currentLayerItems = bookmarksPlugin.items;
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 
+		this.corePlugins.bookmarks = bookmarksPlugin;
 		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FILE_EXPLORER_PLUGIN_INSTANCE;
 		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GLOBAL_SEARCH_PLUGIN_INSTANCE;
+		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GRAPH_PLUGIN_INSTANCE;
 	}
 
 	onOpen() {
@@ -119,11 +125,6 @@ export class BookmarksCallerModal extends Modal {
 				itemBtnEl.addClass('bc-leaf-name-btn');
 				itemBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
 				setIcon(itemBtnEl, this.getTypeIcon(item));
-
-				if (NOT_SUPPORTED_TYPES.includes(item.type)) {
-					shortcutBtnEl.setAttr('readonly', '');
-					itemBtnEl.setAttr('readonly', '');
-				}
 
 				const name = this.getDisplayName(item);
 				itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
@@ -271,8 +272,14 @@ export class BookmarksCallerModal extends Modal {
 				this.close();
 				break;
 			}
-			// Not supported
-			case 'graph':
+			case 'graph': {
+				if (this.corePlugins.graph && this.corePlugins.bookmarks) {	
+					await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_EMPTY, active: true });
+					await this.corePlugins.bookmarks.openBookmark(bookmark, 'tab');
+				}
+				this.close();
+				break;
+			}
 			default:
 				// nop
 				break;

@@ -1,6 +1,6 @@
 import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SettingTab, Settings } from './settings';
-import { APP_WITH_CORE_PLUGINS, BOOKMARKS_PLUGIN_INSTANCE } from './types';
+import { BOOKMARKS_PLUGIN_INSTANCE } from './types';
 import { BookmarksCallerModal } from './bookmarks-caller-modal';
 import { MessageModal } from './message-modal';
 import { BcTmpView, VIEW_TYPE_BC_TMP } from './view';
@@ -47,8 +47,7 @@ export default class BookmarkCaller extends Plugin {
 	private openBookmarksCallerModal(): void {
 		const bookmarksPlugin = getEnabledPluginById(this.app, 'bookmarks') as BOOKMARKS_PLUGIN_INSTANCE;
 		if (bookmarksPlugin) {
-			const bookmarks = bookmarksPlugin.items;
-			new BookmarksCallerModal(this.app, this.settings, bookmarks).open();
+			new BookmarksCallerModal(this.app, this.settings, bookmarksPlugin).open();
 		} else {
 			new MessageModal(this.app).open();
 		}
