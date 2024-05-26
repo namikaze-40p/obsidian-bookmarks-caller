@@ -1,6 +1,6 @@
 import { App, Modal, TFile, TFolder, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BOOKMARKS_PLUGIN_INSTANCE, BOOKMARK_ITEM, FILE_EXPLORER_PLUGIN_INSTANCE, GLOBAL_SEARCH_PLUGIN_INSTANCE, GRAPH_PLUGIN_INSTANCE } from './types';
+import { BookmarksPluginInstance, BookmarkItem, FileExplorerPluginInstance, GlobalSearchPluginInstance, GraphPluginInstance } from './types';
 import { VIEW_TYPE_BC_TMP } from './view';
 import { getEnabledPluginById } from './util';
 
@@ -17,7 +17,7 @@ const FOOTER_ITEMS = [
 	{ keys: 'chars', description: 'Quickly open item' },
 	{ keys: 'all', description: 'Open all files in current group' },
 ];
-const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
+const getButtonId = (bookmark?: BookmarkItem): string => {
 	if (!bookmark) {
 		return '';
 	}
@@ -25,29 +25,29 @@ const getButtonId = (bookmark?: BOOKMARK_ITEM): string => {
 	return `${idPrefix}_${bookmark.cTime}`;
 };
 
-type CORE_PLUGINS = {
-	bookmarks: BOOKMARKS_PLUGIN_INSTANCE | null,
-	fileExplorer: FILE_EXPLORER_PLUGIN_INSTANCE | null,
-	globalSearch: GLOBAL_SEARCH_PLUGIN_INSTANCE | null,
-	graph: GRAPH_PLUGIN_INSTANCE | null,
+type CorePlugins = {
+	bookmarks: BookmarksPluginInstance | null,
+	fileExplorer: FileExplorerPluginInstance | null,
+	globalSearch: GlobalSearchPluginInstance | null,
+	graph: GraphPluginInstance | null,
 };
 
-export type HISTORY = {
-	items: BOOKMARK_ITEM[];
+type History = {
+	items: BookmarkItem[];
 	pagePosition: number;
 	focusPosition: number;
 }
 
 export class BookmarksCallerModal extends Modal {
 	settings: Settings;
-	corePlugins: CORE_PLUGINS = {
+	corePlugins: CorePlugins = {
 		bookmarks: null,
 		fileExplorer: null,
 		globalSearch: null,
 		graph: null,
 	};
 	chars: string[] = [];
-	histories: HISTORY[] = [];
+	histories: History[] = [];
 	buttonMap: Map<string, HTMLButtonElement> = new Map();
 	pagePosition = 0;
 	focusPosition = 0;
@@ -56,19 +56,21 @@ export class BookmarksCallerModal extends Modal {
 	headerTextEl: HTMLSpanElement;
 	eventListenerFunc: (ev: KeyboardEvent) => void;
 
-	private _currentLayerItems: BOOKMARK_ITEM[] = [];
+	private _currentLayerItems: BookmarkItem[] = [];
 
-	set currentLayerItems(value: BOOKMARK_ITEM[]) {
+	set currentLayerItems(value: BookmarkItem[]) {
 		this._currentLayerItems = value;
 	}
-	get currentLayerItems(): BOOKMARK_ITEM[] {
+
+	get currentLayerItems(): BookmarkItem[] {
 		return this._currentLayerItems;
 	}
-	get viewItems(): BOOKMARK_ITEM[] {
+
+	get viewItems(): BookmarkItem[] {
 		return this._currentLayerItems.slice(this.pagePosition * this.chars.length, this.chars.length + this.pagePosition * this.chars.length);
 	}
 
-	constructor(app: App, settings: Settings, bookmarksPlugin: BOOKMARKS_PLUGIN_INSTANCE) {
+	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance) {
 		super(app);
 		this.settings = settings;
 		this.chars = [...this.settings.characters];
@@ -76,9 +78,9 @@ export class BookmarksCallerModal extends Modal {
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 
 		this.corePlugins.bookmarks = bookmarksPlugin;
-		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FILE_EXPLORER_PLUGIN_INSTANCE;
-		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GLOBAL_SEARCH_PLUGIN_INSTANCE;
-		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GRAPH_PLUGIN_INSTANCE;
+		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance;
+		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance;
+		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GraphPluginInstance;
 	}
 
 	onOpen() {
@@ -195,7 +197,7 @@ export class BookmarksCallerModal extends Modal {
 		this.headerTextEl.setText(path);
 	}
 
-	private getTypeIcon(bookmark: BOOKMARK_ITEM): string {
+	private getTypeIcon(bookmark: BookmarkItem): string {
 		switch (bookmark.type) {
 			case 'group':
 				return 'chevron-right';
@@ -216,7 +218,7 @@ export class BookmarksCallerModal extends Modal {
 		}
 	}
 
-	private getDisplayName(bookmark: BOOKMARK_ITEM): string {
+	private getDisplayName(bookmark: BookmarkItem): string {
 		if (bookmark.title) {
 			return bookmark.title;
 		}
@@ -236,10 +238,10 @@ export class BookmarksCallerModal extends Modal {
 		}
 	}
 
-	private async clickItemButton(bookmark: BOOKMARK_ITEM, idx: number): Promise<void> {
+	private async clickItemButton(bookmark: BookmarkItem, idx: number): Promise<void> {
 		switch (bookmark.type) {
 			case 'group': {
-				const history = this.histories.at(-1) as HISTORY;
+				const history = this.histories.at(-1) as History;
 				history.pagePosition = this.pagePosition;
 				history.focusPosition = idx;
 	
@@ -376,13 +378,13 @@ export class BookmarksCallerModal extends Modal {
 			this.groups.pop();
 			this.histories.pop();
 
-			const { items, pagePosition, focusPosition} = this.histories.at(-1) as HISTORY;
+			const { items, pagePosition, focusPosition} = this.histories.at(-1) as History;
 			this.currentLayerItems = items;
 			this.generateButtons(this.buttonsViewEl, pagePosition, focusPosition);
 		}
 	}
 
-	private async openAllFiles(items: BOOKMARK_ITEM[], isTeardown = true): Promise<void> {
+	private async openAllFiles(items: BookmarkItem[], isTeardown = true): Promise<void> {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}

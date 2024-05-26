@@ -1,6 +1,6 @@
 import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SettingTab, Settings } from './settings';
-import { BOOKMARKS_PLUGIN_INSTANCE } from './types';
+import { BookmarksPluginInstance } from './types';
 import { BookmarksCallerModal } from './bookmarks-caller-modal';
 import { MessageModal } from './message-modal';
 import { BcTmpView, VIEW_TYPE_BC_TMP } from './view';
@@ -15,7 +15,7 @@ export default class BookmarkCaller extends Plugin {
 
 		this.registerView(
 			VIEW_TYPE_BC_TMP,
-			(leaf) => new BcTmpView(leaf)
+			(leaf) => new BcTmpView(leaf),
 		);
 
 		this.addRibbonIcon('bookmark', 'Open bookmarks caller', () => this.openBookmarksCallerModal());
@@ -45,7 +45,7 @@ export default class BookmarkCaller extends Plugin {
 	}
 
 	private openBookmarksCallerModal(): void {
-		const bookmarksPlugin = getEnabledPluginById(this.app, 'bookmarks') as BOOKMARKS_PLUGIN_INSTANCE;
+		const bookmarksPlugin = getEnabledPluginById(this.app, 'bookmarks') as BookmarksPluginInstance;
 		if (bookmarksPlugin) {
 			new BookmarksCallerModal(this.app, this.settings, bookmarksPlugin).open();
 		} else {

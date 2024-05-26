@@ -1,10 +1,10 @@
-import { App } from "obsidian";
-import { APP_WITH_CORE_PLUGINS, PLUGIN_INSTANCE } from "./types";
+import { App } from 'obsidian';
+import { CustomApp, PluginInstance } from './types';
 
 const STYLES_ID = 'bookmarks-caller-styles';
 
-export const getEnabledPluginById = (app: App, pluginId: string): PLUGIN_INSTANCE | null => {
-	return (app as APP_WITH_CORE_PLUGINS)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
+export const getEnabledPluginById = (app: App, pluginId: string): PluginInstance | null => {
+	return (app as CustomApp)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
 };
 
 export const deleteStyles = () => {

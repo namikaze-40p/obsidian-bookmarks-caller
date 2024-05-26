@@ -1,14 +1,14 @@
 import { App, PaneType, Plugin, TAbstractFile } from 'obsidian';
 
-export type APP_WITH_CORE_PLUGINS = App & {
+export type CustomApp = App & {
 	internalPlugins: {
-		getEnabledPluginById: (pluginId: string) => PLUGIN_INSTANCE,	
+		getEnabledPluginById: (pluginId: string) => PluginInstance,	
 	},
 };
 
-export type PLUGIN_INSTANCE = BOOKMARKS_PLUGIN_INSTANCE | FILE_EXPLORER_PLUGIN_INSTANCE | GLOBAL_SEARCH_PLUGIN_INSTANCE | GRAPH_PLUGIN_INSTANCE;
+export type PluginInstance = BookmarksPluginInstance | FileExplorerPluginInstance | GlobalSearchPluginInstance | GraphPluginInstance;
 
-type BASIC_PLUGIN_PARAMS = {
+type BasicPluginParams = {
 	app: App,
 	defaultOn: boolean,
 	description: string,
@@ -17,28 +17,28 @@ type BASIC_PLUGIN_PARAMS = {
 	plugin: Plugin,
 };
 
-export type BOOKMARKS_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
-	items: BOOKMARK_ITEM[],
-	openBookmark: (bookmark: BOOKMARK_ITEM, type: PaneType | boolean, eState?: { focus: boolean }) => Promise<void>,
+export type BookmarksPluginInstance = BasicPluginParams & {
+	items: BookmarkItem[],
+	openBookmark: (bookmark: BookmarkItem, type: PaneType | boolean, eState?: { focus: boolean }) => Promise<void>,
 };
 
-export type FILE_EXPLORER_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
+export type FileExplorerPluginInstance = BasicPluginParams & {
 	revealInFolder: (path: TAbstractFile) => void,
 };
 
-export type GLOBAL_SEARCH_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS & {
+export type GlobalSearchPluginInstance = BasicPluginParams & {
 	openGlobalSearch: (query: string) => void,
 };
 
-export type GRAPH_PLUGIN_INSTANCE = BASIC_PLUGIN_PARAMS;
+export type GraphPluginInstance = BasicPluginParams;
 
-export type BOOKMARK_TYPE = 'group' | 'folder' | 'file' | 'graph' | 'search';
+export type BookmarkType = 'group' | 'folder' | 'file' | 'graph' | 'search';
 
-export type BOOKMARK_ITEM = {
+export type BookmarkItem = {
 	cTime: number;
-	type: BOOKMARK_TYPE;
+	type: BookmarkType;
 	title?: string;
-	items?: BOOKMARK_ITEM[];
+	items?: BookmarkItem[];
 	path?: string;
 	subpath?: string;
 	query?: string;
