@@ -1,19 +1,32 @@
-.setting-item {
-	.bc-setting-is-invalid {
-		border-color: red !important;
+.bc-settings {
+	.setting-item {
+		.bc-setting-is-invalid {
+			border-color: red !important;
+		}
+		
+		.bc-setting-shortcut-key {
+			background-color: var(--background-modifier-hover) !important;
+			height: 1.5rem !important;
+			width: 6rem !important;
+			font-size: small;
+		}
+		
+		.bc-setting-shortcut-key-edit {
+			background-color: var(--interactive-accent) !important;
+			color: var(--text-on-accent);
+			width: 8rem !important;
+		}
 	}
-	
-	.bc-setting-shortcut-key {
-		background-color: var(--background-modifier-hover) !important;
-		height: 1.5rem !important;
-		width: 6rem !important;
-		font-size: small;
-	}
-	
-	.bc-setting-shortcut-key-edit {
-		background-color: var(--interactive-accent) !important;
-		color: var(--text-on-accent);
-		width: 8rem !important;
+
+	& details {
+		font-size: var(--font-ui-medium);
+		margin-bottom: 1rem;
+		border: 1px solid #aaa;
+		padding: 0.5rem;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
 	}
 }
 
@@ -139,6 +152,49 @@
 			& a {
 				word-break: break-all;
 			}
+		}
+	}
+}
+
+.prompt.bookmarks-search-modal {
+	& .suggestion-item {
+		display: grid;
+		grid-template-columns: 1.5rem 1fr;
+	}
+
+	& .bs-footer {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+		&:has(div) {
+			padding: 1rem;
+			border-top: 1px solid #aaaa;
+		}
+
+		& .bs-button {
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+
+			& .bs-btn {
+				width: 7rem;
+				min-height: 2rem;
+				max-height: 2rem;
+				font-weight: bold;
+
+				& svg {
+					margin-right: 0.2rem;
+				}
+			}
+		}
+
+		& .bs-legend {
+			display: flex;
+			gap: 0.25rem;
+
+			& .bs-keys {
+				font-weight: bold;
+			}	
 		}
 	}
 }

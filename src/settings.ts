@@ -2,7 +2,13 @@ import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian'
 import BookmarkCaller from './main';
 import { createStyles, deleteStyles } from './util';
 
+export const STRUCTURE_TYPE: Record<string, string> = {
+	default: 'default',
+	flat: 'flat',
+} as const;
+
 export interface Settings {
+	// Settings for "Open bookmarks caller" command
 	recursivelyOpen: boolean;
 	showFooterButtons: boolean;
 	showLegends: boolean;
@@ -10,9 +16,16 @@ export interface Settings {
 	characters: string;
 	allBtn: string;
 	backBtn: string;
+	// Settings for "Search bookmarks" command
+	bsStructureType: string;
+	bsRecursivelyOpen: boolean;
+	bsShowFooterButtons: boolean;
+	bsShowLegends: boolean;
+	bsFocusColor: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+	// Settings for "Open bookmarks caller" command
 	recursivelyOpen: true,
 	showFooterButtons: true,
 	showLegends: true,
@@ -20,6 +33,12 @@ export const DEFAULT_SETTINGS: Settings = {
 	characters: 'asdfghjkl;',
 	allBtn: '/',
 	backBtn: 'Backspace',
+	// Settings for "Search bookmarks" command
+	bsStructureType: 'default',
+	bsRecursivelyOpen: true,
+	bsShowFooterButtons: true,
+	bsShowLegends: true,
+	bsFocusColor: '#00b4e0',
 } as const;
 
 export const CHAR_LENGTH = {
@@ -35,8 +54,14 @@ const RESERVED_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', '
 
 export class SettingTab extends PluginSettingTab {
 	plugin: BookmarkCaller;
+	isOpen = {
+		firstDetails: false,
+		secondDetails: false,
+	};
 	allBtnText: TextComponent;
 	backBtnText: TextComponent;
+	bsAllBtnText: TextComponent;
+	bsBackBtnText: TextComponent;
 
 	constructor(app: App, plugin: BookmarkCaller) {
 		super(app, plugin);
@@ -47,9 +72,53 @@ export class SettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		containerEl.addClass('bc-settings');
 		containerEl.createEl('h2').setText('Bookmarks Caller - Settings');
 
-		new Setting(containerEl)
+		{
+			const detailsEl = containerEl.createEl('details', '', el => {
+				el.createEl('summary', '', summaryEl => {
+					summaryEl.setText('For "Open bookmarks caller" command');
+				});
+			});
+			if (this.isOpen.firstDetails) {
+				detailsEl.setAttr('open', true);
+			}
+			detailsEl.addEventListener("toggle", () => this.isOpen.firstDetails = detailsEl.open);
+			this.setForOpenBookmarksCallerCommand(detailsEl);
+		}
+
+		{
+			const detailsEl = containerEl.createEl('details', '', el => {
+				el.createEl('summary', '', summaryEl => {
+					summaryEl.setText('For "Search bookmarks" command');
+				});
+			});
+			if (this.isOpen.secondDetails) {
+				detailsEl.setAttr('open', true);
+			}
+			detailsEl.addEventListener("toggle", () => this.isOpen.secondDetails = detailsEl.open);
+			this.setForSearchBookmarksCommand(detailsEl);
+		}
+	}
+
+	updateStyleSheet(isTeardown = false): void {
+		deleteStyles();
+		if (isTeardown) {
+			return;
+		}
+
+		const { characters, focusColor, bsFocusColor } = this.plugin.settings;
+		createStyles([
+			// 32 is button's height. 8 is margin of between buttons.
+			{ selector: '.bc-buttons-view', property: 'min-height', value: `${32 * characters.length + 8 * (characters.length - 1)}px` },
+			{ selector: '.bc-leaf-name-btn:focus', property: 'outline', value: `2px solid ${focusColor}` },
+			{ selector: '.bookmarks-search-modal .suggestion-item.is-selected', property: 'outline', value: `2px solid ${bsFocusColor}` },
+		]);
+	}
+
+	private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
+		new Setting(detailsEl)
 			.setName(`Recursively open files under groups`)
 			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
 			.addToggle(toggle => toggle.setValue(this.plugin.settings.recursivelyOpen)
@@ -59,7 +128,7 @@ export class SettingTab extends PluginSettingTab {
 				}),
 			);
 
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName(`Show footer buttons`)
 			.setDesc('When enabled, show footer buttons on modal.')
 			.addToggle(toggle => toggle.setValue(this.plugin.settings.showFooterButtons)
@@ -69,7 +138,7 @@ export class SettingTab extends PluginSettingTab {
 				}),
 			);
 		
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName(`Show legends`)
 			.setDesc('When enabled, show legends on modal.')
 			.addToggle(toggle => toggle.setValue(this.plugin.settings.showLegends)
@@ -79,7 +148,7 @@ export class SettingTab extends PluginSettingTab {
 				}),
 			);
 		
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName('Color of button frame on focus')
 			.setDesc('Choice your favorite color.')
 			.addColorPicker(colorPicker => colorPicker.setValue(this.plugin.settings.focusColor)
@@ -91,7 +160,7 @@ export class SettingTab extends PluginSettingTab {
 			)
 			.then(settingEl => this.addResetButton(settingEl, 'focusColor'));
 
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName('Characters used for button hints')
 			.setDesc(`Enter ${CHAR_LENGTH.min}~${CHAR_LENGTH.max} non-duplicate alphanumeric characters or symbols.`)
 			.addText(text => {
@@ -132,7 +201,7 @@ export class SettingTab extends PluginSettingTab {
 			})
 			.then(settingEl => this.addResetButton(settingEl, 'characters'));
 
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName('Shortcut key for the “All” button')
 			.setDesc('Assign shortcut key for the “All” button.')
 			.addText(text => {
@@ -151,7 +220,7 @@ export class SettingTab extends PluginSettingTab {
 				}),
 			);
 
-		new Setting(containerEl)
+		new Setting(detailsEl)
 			.setName('Shortcut key for the “Back” button')
 			.setDesc('Assign shortcut key for the “Back” button.')
 			.addText(text => {
@@ -171,18 +240,62 @@ export class SettingTab extends PluginSettingTab {
 			);
 	}
 
-	updateStyleSheet(isTeardown = false): void {
-		deleteStyles();
-		if (isTeardown) {
-			return;
-		}
+	private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
+		new Setting(detailsEl)
+			.setName('Type of structure in the list view')
+			.setDesc('"default" displays the structure as defined in the Bookmarks core plugin. "flat" displays nested groups in a flattened structure.')
+			.addDropdown(item => item
+				.addOptions(STRUCTURE_TYPE)
+				.setValue(this.plugin.settings.bsStructureType)
+				.onChange(async value => {
+					this.plugin.settings.bsStructureType = value;
+					await this.plugin.saveData(this.plugin.settings);
+					this.display();
+				}),
+			)
+			.then(settingEl => this.addResetButton(settingEl, 'bsStructureType'));
+			
+		new Setting(detailsEl)
+			.setName(`Recursively open files under groups`)
+			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsRecursivelyOpen)
+				.onChange(async value => {
+					this.plugin.settings.bsRecursivelyOpen = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+			);
 
-		const { characters, focusColor } = this.plugin.settings;
-		createStyles([
-			// 32 is button's height. 8 is margin of between buttons.
-			{ selector: '.bc-buttons-view', property: 'min-height', value: `${32 * characters.length + 8 * (characters.length - 1)}px` },
-			{ selector: '.bc-leaf-name-btn:focus', property: 'outline', value: `2px solid ${focusColor}` },
-		]);
+		new Setting(detailsEl)
+			.setName(`Show footer buttons`)
+			.setDesc('When enabled, show footer buttons on modal.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsShowFooterButtons)
+				.onChange(async value => {
+					this.plugin.settings.bsShowFooterButtons = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+			);
+		
+		new Setting(detailsEl)
+			.setName(`Show legends`)
+			.setDesc('When enabled, show legends on modal.')
+			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsShowLegends)
+				.onChange(async value => {
+					this.plugin.settings.bsShowLegends = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+			);
+		
+		new Setting(detailsEl)
+			.setName('Color of button frame on focus')
+			.setDesc('Choice your favorite color.')
+			.addColorPicker(colorPicker => colorPicker.setValue(this.plugin.settings.bsFocusColor)
+				.onChange(async value => {
+					this.plugin.settings.bsFocusColor = value;
+					await this.plugin.saveData(this.plugin.settings);
+					this.updateStyleSheet();
+				}),
+			)
+			.then(settingEl => this.addResetButton(settingEl, 'bsFocusColor'));
 	}
 
 	private isDuplicateChars(chars: string[]): boolean {
