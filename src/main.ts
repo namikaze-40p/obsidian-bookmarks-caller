@@ -45,6 +45,7 @@ export default class BookmarkCaller extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.migrateSettingValues();
 	}
 
 	async saveSettings() {
@@ -68,5 +69,47 @@ export default class BookmarkCaller extends Plugin {
 		} else {
 			new MessageModal(this.app).open();
 		}
+	}
+
+	private async migrateSettingValues(): Promise<void> {
+		type OldSettings = {
+			recursivelyOpen?: boolean;
+			showFooterButtons?: boolean;
+			showLegends?: boolean;
+			focusColor?: string;
+			characters?: string;
+			allBtn?: string;
+			backBtn?: string;
+		};
+		const oldSettings = (this.settings as any) as OldSettings;
+		if (typeof oldSettings.recursivelyOpen === 'boolean') {
+			this.settings.openBookmarksCaller.recursivelyOpen = oldSettings.recursivelyOpen;
+			delete oldSettings.recursivelyOpen;
+		}
+		if (typeof oldSettings.showFooterButtons === 'boolean') {
+			this.settings.openBookmarksCaller.showFooterButtons = oldSettings.showFooterButtons;
+			delete oldSettings.showFooterButtons;
+		}
+		if (typeof oldSettings.showLegends === 'boolean') {
+			this.settings.openBookmarksCaller.showLegends = oldSettings.showLegends;
+			delete oldSettings.showLegends;
+		}
+		if (typeof oldSettings.focusColor === 'string') {
+			this.settings.openBookmarksCaller.focusColor = oldSettings.focusColor;
+			delete oldSettings.focusColor;
+		}
+		if (typeof oldSettings.characters === 'string') {
+			this.settings.openBookmarksCaller.characters = oldSettings.characters;
+			delete oldSettings.characters;
+		}
+		if (typeof oldSettings.allBtn === 'string') {
+			this.settings.openBookmarksCaller.allBtn = oldSettings.allBtn;
+			delete oldSettings.allBtn;
+		}
+		if (typeof oldSettings.backBtn === 'string') {
+			this.settings.openBookmarksCaller.backBtn = oldSettings.backBtn;
+			delete oldSettings.backBtn;
+		}
+		await this.saveSettings();
 	}
 }
