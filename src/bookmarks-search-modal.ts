@@ -1,5 +1,5 @@
 import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
-import { Settings } from './settings';
+import { SearchBookmarksSettings, Settings } from './settings';
 import {
 	BookmarkItem,
 	BookmarksPluginInstance,
@@ -44,10 +44,14 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 	upperLayers: BookmarkItem[][] = [];
 	eventListenerFunc: (ev: KeyboardEvent) => void;
 
+	get modalSettings(): SearchBookmarksSettings {
+		return this.settings.searchBookmarks;
+	}
+
 	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance, bookmarks: BookmarkItem[], upperLayers: BookmarkItem[][] = []) {
 		super(app);
 		this.settings = settings;
-		this.bookmarks = this.settings.bsStructureType === 'default' ? bookmarks : this.convertToFlatStructure(bookmarks);
+		this.bookmarks = this.modalSettings.structureType === 'default' ? bookmarks : this.convertToFlatStructure(bookmarks);
 		this.currentLayerItems = this.bookmarks;
 		this.upperLayers = upperLayers;
 
@@ -78,7 +82,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 
 	private generateFooter(contentEl: HTMLElement): void {
 		contentEl.createDiv('bs-footer', footerEl => {
-			if (this.settings.bsShowFooterButtons) {
+			if (this.modalSettings.showFooterButtons) {
 				footerEl.createDiv('bs-button', el => {
 					const backBtnEl = el.createEl('button');
 					setIcon(backBtnEl, 'undo-2');
@@ -96,7 +100,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 				});
 			}
 
-			if (this.settings.bsShowLegends) {
+			if (this.modalSettings.showLegends) {
 				const modifier = Platform.isMacOS || Platform.isIosApp ? '⇧' : 'Shift + '
 				FOOTER_ITEMS.forEach(item => {
 					footerEl.createDiv('bs-legend', el => {
@@ -199,7 +203,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}
-		const isRecursivelyOpen = this.settings.bsRecursivelyOpen && this.settings.bsStructureType === 'default';
+		const isRecursivelyOpen = this.modalSettings.recursivelyOpen && this.modalSettings.structureType === 'default';
 		await openChildFiles(this.app, items, isRecursivelyOpen);
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);

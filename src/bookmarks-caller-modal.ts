@@ -1,5 +1,5 @@
 import { App, Modal, setIcon } from 'obsidian';
-import { Settings } from './settings';
+import { OpenBookmarksCallerSettings, Settings } from './settings';
 import { BookmarksPluginInstance,
 	BookmarkItem,
 	FileExplorerPluginInstance,
@@ -76,10 +76,14 @@ export class BookmarksCallerModal extends Modal {
 		return this._currentLayerItems.slice(this.pagePosition * this.chars.length, this.chars.length + this.pagePosition * this.chars.length);
 	}
 
+	get modalSettings(): OpenBookmarksCallerSettings {
+		return this.settings.openBookmarksCaller;
+	}
+
 	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance) {
 		super(app);
 		this.settings = settings;
-		this.chars = [...this.settings.characters];
+		this.chars = [...this.modalSettings.characters];
 		this.currentLayerItems = bookmarksPlugin.items;
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 
@@ -148,7 +152,7 @@ export class BookmarksCallerModal extends Modal {
 	private generateFooter(contentEl: HTMLElement): void {
 		contentEl.createDiv('bc-footer', el => {
 			el.createDiv('bc-page-nav', navEl => {
-				if (this.settings.showFooterButtons) {
+				if (this.modalSettings.showFooterButtons) {
 					const backBtnEl = navEl.createEl('button');
 					setIcon(backBtnEl, 'undo-2');
 					backBtnEl.createSpan('').setText('Back');
@@ -177,15 +181,15 @@ export class BookmarksCallerModal extends Modal {
 				}
 			});
 
-			if (this.settings.showLegends) {
+			if (this.modalSettings.showLegends) {
 				FOOTER_ITEMS.forEach(item => {
 					el.createDiv('bc-legend', el => {
 						let keys = item.keys;
 						if (keys === 'all') {
-							keys = this.settings.allBtn;
+							keys = this.modalSettings.allBtn;
 						}
 						if (keys === 'back') {
-							keys = this.settings.backBtn;
+							keys = this.modalSettings.backBtn;
 						}
 						if (keys === 'chars') {
 							keys = `${this.chars.slice(0, 2).join(' | ')} | ... | ${this.chars.slice(-2).join(' | ')}`;
@@ -259,13 +263,13 @@ export class BookmarksCallerModal extends Modal {
 			return;
 		}
 
-		if (ev.key === this.settings.backBtn) {
+		if (ev.key === this.modalSettings.backBtn) {
 			this.backToParentLayer();
 			ev.preventDefault();
 			return;
 		}
 
-		if (ev.key === this.settings.allBtn) {
+		if (ev.key === this.modalSettings.allBtn) {
 			this.openAllFiles(this.currentLayerItems);
 			ev.preventDefault();
 			return;
@@ -346,7 +350,7 @@ export class BookmarksCallerModal extends Modal {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}
-		const isRecursivelyOpen = this.settings.recursivelyOpen;
+		const isRecursivelyOpen = this.modalSettings.recursivelyOpen;
 		await openChildFiles(this.app, items, isRecursivelyOpen);
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);

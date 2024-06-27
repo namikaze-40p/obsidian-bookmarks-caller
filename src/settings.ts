@@ -7,8 +7,12 @@ export const STRUCTURE_TYPE: Record<string, string> = {
 	flat: 'flat',
 } as const;
 
-export interface Settings {
-	// Settings for "Open bookmarks caller" command
+const SETTING_TYPE = {
+	openBookmarksCaller: 'openBookmarksCaller',
+	searchBookmarks: 'searchBookmarks',
+} as const;
+
+export interface OpenBookmarksCallerSettings {
 	recursivelyOpen: boolean;
 	showFooterButtons: boolean;
 	showLegends: boolean;
@@ -16,16 +20,22 @@ export interface Settings {
 	characters: string;
 	allBtn: string;
 	backBtn: string;
-	// Settings for "Search bookmarks" command
-	bsStructureType: string;
-	bsRecursivelyOpen: boolean;
-	bsShowFooterButtons: boolean;
-	bsShowLegends: boolean;
-	bsFocusColor: string;
 }
 
-export const DEFAULT_SETTINGS: Settings = {
-	// Settings for "Open bookmarks caller" command
+export interface SearchBookmarksSettings {
+	structureType: string;
+	recursivelyOpen: boolean;
+	showFooterButtons: boolean;
+	showLegends: boolean;
+	focusColor: string;
+}
+
+export interface Settings {
+	[SETTING_TYPE.openBookmarksCaller]: OpenBookmarksCallerSettings;
+	[SETTING_TYPE.searchBookmarks]: SearchBookmarksSettings;
+}
+
+const BOOKMARKS_CALLER_DEFAULT_SETTINGS = {
 	recursivelyOpen: true,
 	showFooterButtons: true,
 	showLegends: true,
@@ -33,12 +43,19 @@ export const DEFAULT_SETTINGS: Settings = {
 	characters: 'asdfghjkl;',
 	allBtn: '/',
 	backBtn: 'Backspace',
-	// Settings for "Search bookmarks" command
-	bsStructureType: 'default',
-	bsRecursivelyOpen: true,
-	bsShowFooterButtons: true,
-	bsShowLegends: true,
-	bsFocusColor: '#00b4e0',
+} as const;
+
+const SEARCH_BOOKMARKS_DEFAULT_SETTINGS = {
+	structureType: 'default',
+	recursivelyOpen: true,
+	showFooterButtons: true,
+	showLegends: true,
+	focusColor: '#00b4e0',
+} as const;
+
+export const DEFAULT_SETTINGS: Settings = {
+	[SETTING_TYPE.openBookmarksCaller]: BOOKMARKS_CALLER_DEFAULT_SETTINGS,
+	[SETTING_TYPE.searchBookmarks]: SEARCH_BOOKMARKS_DEFAULT_SETTINGS,
 } as const;
 
 export const CHAR_LENGTH = {
@@ -108,22 +125,27 @@ export class SettingTab extends PluginSettingTab {
 			return;
 		}
 
-		const { characters, focusColor, bsFocusColor } = this.plugin.settings;
+		const { openBookmarksCaller, searchBookmarks } = this.plugin.settings;
+		const { characters, focusColor } = openBookmarksCaller;
+		const { focusColor: sbFocusColor } = searchBookmarks;
 		createStyles([
 			// 32 is button's height. 8 is margin of between buttons.
 			{ selector: '.bc-buttons-view', property: 'min-height', value: `${32 * characters.length + 8 * (characters.length - 1)}px` },
 			{ selector: '.bc-leaf-name-btn:focus', property: 'outline', value: `2px solid ${focusColor}` },
-			{ selector: '.bookmarks-search-modal .suggestion-item.is-selected', property: 'outline', value: `2px solid ${bsFocusColor}` },
+			{ selector: '.bookmarks-search-modal .suggestion-item.is-selected', property: 'outline', value: `2px solid ${sbFocusColor}` },
 		]);
 	}
 
 	private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
+		const settingType = 'openBookmarksCaller';
+		const settings = this.plugin.settings[settingType];
+
 		new Setting(detailsEl)
 			.setName(`Recursively open files under groups`)
 			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.recursivelyOpen)
+			.addToggle(toggle => toggle.setValue(settings.recursivelyOpen)
 				.onChange(async value => {
-					this.plugin.settings.recursivelyOpen = value;
+					settings.recursivelyOpen = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -131,9 +153,9 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName(`Show footer buttons`)
 			.setDesc('When enabled, show footer buttons on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.showFooterButtons)
+			.addToggle(toggle => toggle.setValue(settings.showFooterButtons)
 				.onChange(async value => {
-					this.plugin.settings.showFooterButtons = value;
+					settings.showFooterButtons = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -141,9 +163,9 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName(`Show legends`)
 			.setDesc('When enabled, show legends on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.showLegends)
+			.addToggle(toggle => toggle.setValue(settings.showLegends)
 				.onChange(async value => {
-					this.plugin.settings.showLegends = value;
+					settings.showLegends = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -151,29 +173,32 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName('Color of button frame on focus')
 			.setDesc('Choice your favorite color.')
-			.addColorPicker(colorPicker => colorPicker.setValue(this.plugin.settings.focusColor)
+			.addColorPicker(colorPicker => colorPicker.setValue(settings.focusColor)
 				.onChange(async value => {
-					this.plugin.settings.focusColor = value;
+					settings.focusColor = value;
 					await this.plugin.saveData(this.plugin.settings);
 					this.updateStyleSheet();
 				}),
 			)
-			.then(settingEl => this.addResetButton(settingEl, 'focusColor'));
+			.then(settingEl => {
+				const setDefaultValue = () => settings.focusColor = DEFAULT_SETTINGS[settingType].focusColor;
+				this.addResetButton(settingEl, setDefaultValue);
+			});
 
 		new Setting(detailsEl)
 			.setName('Characters used for button hints')
 			.setDesc(`Enter ${CHAR_LENGTH.min}~${CHAR_LENGTH.max} non-duplicate alphanumeric characters or symbols.`)
 			.addText(text => {
-				let orgCharacters = this.plugin.settings.characters;
-				const { allBtn, backBtn } = this.plugin.settings;
+				let orgCharacters = settings.characters;
+				const { allBtn, backBtn } = settings;
 				const textComponent = text
 					.setPlaceholder('Enter characters')
-					.setValue(this.plugin.settings.characters)
+					.setValue(settings.characters)
 					.onChange(async value => {
 						const { inputEl } = textComponent;
 						if (!this.isDuplicateChars([...value, allBtn, backBtn]) && inputEl.validity.valid) {
 							inputEl.removeClass('bc-setting-is-invalid');
-							this.plugin.settings.characters = value;
+							settings.characters = value;
 							orgCharacters = value;
 							await this.plugin.saveSettings();
 						} else {
@@ -184,11 +209,11 @@ export class SettingTab extends PluginSettingTab {
 
 				textComponent.inputEl.addEventListener('blur', () => {
 					if (this.isDuplicateChars([...textComponent.inputEl.value, allBtn, backBtn])) {
-						this.plugin.settings.characters = orgCharacters;
+						settings.characters = orgCharacters;
 						new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
 					}
 					if (!textComponent.inputEl.validity.valid) {
-						this.plugin.settings.characters = orgCharacters;
+						settings.characters = orgCharacters;
 						new Notice(NUMBER_OF_CHARACTERS_MESSAGE, NOTION_DURATION_MS);
 					}
 				});
@@ -199,23 +224,29 @@ export class SettingTab extends PluginSettingTab {
 				});
 				return textComponent;
 			})
-			.then(settingEl => this.addResetButton(settingEl, 'characters'));
+			.then(settingEl => {
+				const setDefaultValue = () => settings.characters = DEFAULT_SETTINGS[settingType].characters;
+				this.addResetButton(settingEl, setDefaultValue);
+			});
 
 		new Setting(detailsEl)
 			.setName('Shortcut key for the “All” button')
 			.setDesc('Assign shortcut key for the “All” button.')
 			.addText(text => {
-				this.allBtnText = text.setValue(this.plugin.settings.allBtn);
+				this.allBtnText = text.setValue(settings.allBtn);
 				this.allBtnText.inputEl.setAttr('readonly', '');
 				this.allBtnText.inputEl.addClass('bc-setting-shortcut-key');
 				return this.allBtnText;
 			})
-			.then(settingEl => this.addResetButton(settingEl, 'allBtn'))
+			.then(settingEl => {
+				const setDefaultValue = () => settings.allBtn = DEFAULT_SETTINGS[settingType].allBtn;
+				this.addResetButton(settingEl, setDefaultValue);
+			})
 			.addExtraButton(button => button
 				.setIcon('pencil')
 				.setTooltip('Custom shortcut key')
 				.onClick(() => {
-					const usedKeys = [...this.plugin.settings.characters, this.plugin.settings.backBtn];
+					const usedKeys = [...settings.characters, settings.backBtn];
 					this.onClickShortcutKeyEdit(this.allBtnText, 'allBtn', usedKeys);
 				}),
 			);
@@ -224,43 +255,52 @@ export class SettingTab extends PluginSettingTab {
 			.setName('Shortcut key for the “Back” button')
 			.setDesc('Assign shortcut key for the “Back” button.')
 			.addText(text => {
-				this.backBtnText = text.setValue(this.plugin.settings.backBtn);
+				this.backBtnText = text.setValue(settings.backBtn);
 				this.backBtnText.inputEl.setAttr('readonly', '');
 				this.backBtnText.inputEl.addClass('bc-setting-shortcut-key');
 				return this.backBtnText;
 			})
-			.then(settingEl => this.addResetButton(settingEl, 'backBtn'))
+			.then(settingEl => {
+				const setDefaultValue = () => settings.backBtn = DEFAULT_SETTINGS[settingType].backBtn;
+				this.addResetButton(settingEl, setDefaultValue);
+			})
 			.addExtraButton(button => button
 				.setIcon('pencil')
 				.setTooltip('Custom shortcut key')
 				.onClick(() => {
-					const usedKeys = [...this.plugin.settings.characters, this.plugin.settings.backBtn];
+					const usedKeys = [...settings.characters, settings.backBtn];
 					this.onClickShortcutKeyEdit(this.backBtnText, 'backBtn', usedKeys);
 				}),
 			);
 	}
 
 	private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
+		const settingType = 'searchBookmarks';
+		const settings = this.plugin.settings[settingType];
+
 		new Setting(detailsEl)
 			.setName('Type of structure in the list view')
 			.setDesc('"default" displays the structure as defined in the Bookmarks core plugin. "flat" displays nested groups in a flattened structure.')
 			.addDropdown(item => item
 				.addOptions(STRUCTURE_TYPE)
-				.setValue(this.plugin.settings.bsStructureType)
+				.setValue(settings.structureType)
 				.onChange(async value => {
-					this.plugin.settings.bsStructureType = value;
+					settings.structureType = value;
 					await this.plugin.saveData(this.plugin.settings);
 					this.display();
 				}),
 			)
-			.then(settingEl => this.addResetButton(settingEl, 'bsStructureType'));
+			.then(settingEl => {
+				const setDefaultValue = () => settings.structureType = DEFAULT_SETTINGS[settingType].structureType;
+				this.addResetButton(settingEl, setDefaultValue);
+			});
 			
 		new Setting(detailsEl)
 			.setName(`Recursively open files under groups`)
 			.setDesc('When enabled, recursively open files under groups when selected “All” button.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsRecursivelyOpen)
+			.addToggle(toggle => toggle.setValue(settings.recursivelyOpen)
 				.onChange(async value => {
-					this.plugin.settings.bsRecursivelyOpen = value;
+					settings.recursivelyOpen = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -268,9 +308,9 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName(`Show footer buttons`)
 			.setDesc('When enabled, show footer buttons on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsShowFooterButtons)
+			.addToggle(toggle => toggle.setValue(settings.showFooterButtons)
 				.onChange(async value => {
-					this.plugin.settings.bsShowFooterButtons = value;
+					settings.showFooterButtons = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -278,9 +318,9 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName(`Show legends`)
 			.setDesc('When enabled, show legends on modal.')
-			.addToggle(toggle => toggle.setValue(this.plugin.settings.bsShowLegends)
+			.addToggle(toggle => toggle.setValue(settings.showLegends)
 				.onChange(async value => {
-					this.plugin.settings.bsShowLegends = value;
+					settings.showLegends = value;
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 			);
@@ -288,14 +328,17 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(detailsEl)
 			.setName('Color of button frame on focus')
 			.setDesc('Choice your favorite color.')
-			.addColorPicker(colorPicker => colorPicker.setValue(this.plugin.settings.bsFocusColor)
+			.addColorPicker(colorPicker => colorPicker.setValue(settings.focusColor)
 				.onChange(async value => {
-					this.plugin.settings.bsFocusColor = value;
+					settings.focusColor = value;
 					await this.plugin.saveData(this.plugin.settings);
 					this.updateStyleSheet();
 				}),
 			)
-			.then(settingEl => this.addResetButton(settingEl, 'bsFocusColor'));
+			.then(settingEl => {
+				const setDefaultValue = () => settings.focusColor = DEFAULT_SETTINGS[settingType].focusColor;
+				this.addResetButton(settingEl, setDefaultValue);
+			});
 	}
 
 	private isDuplicateChars(chars: string[]): boolean {
@@ -306,11 +349,11 @@ export class SettingTab extends PluginSettingTab {
 		text.inputEl.value = 'Press shortcut key';
 		text.inputEl.addClass('class', 'bc-setting-shortcut-key-edit');
 		text.inputEl.focus();
-		const orgKey = this.plugin.settings[btnName];
+		const orgKey = this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
 		const display = this.display.bind(this);
 
 		text.inputEl.addEventListener('keyup', async (ev: KeyboardEvent) => {
-			this.plugin.settings[btnName] = ev.key;
+			this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
 			text.setValue(ev.key);
 			await this.plugin.saveSettings();
 			text.inputEl.removeEventListener('blur', display);
@@ -321,26 +364,25 @@ export class SettingTab extends PluginSettingTab {
 
 		text.inputEl.addEventListener('blur', async () => {
 			if (this.isDuplicateChars([text.inputEl.value, ...usedKeys])) {
-				this.plugin.settings[btnName] = orgKey;
+				this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
 				await this.plugin.saveSettings();
 				new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
 			}
 			if (RESERVED_KEYS.includes(text.inputEl.value)) {
-				this.plugin.settings[btnName] = orgKey;
+				this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
 				await this.plugin.saveSettings();
 				new Notice(RESERVED_KEYS_MESSAGE, NOTION_DURATION_MS);
 			}
 		});
 	}
 
-	private addResetButton(settingEl: Setting, settingKey: keyof typeof DEFAULT_SETTINGS, refreshView = true): void {
+	private addResetButton(settingEl: Setting, setDefaultValue: () => void, refreshView = true): void {
         settingEl
             .addExtraButton(button => button
 				.setIcon('reset')
 				.setTooltip('Reset to default')
 				.onClick(async () => {
-					const settingValue = DEFAULT_SETTINGS[settingKey];
-					(this.plugin.settings[settingKey] as typeof settingValue) = settingValue;
+					setDefaultValue();
 					await this.plugin.saveSettings();
 					this.updateStyleSheet();
 					if (refreshView) {
