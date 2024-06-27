@@ -3,8 +3,8 @@ import BookmarkCaller from './main';
 import { createStyles, deleteStyles } from './util';
 
 export const STRUCTURE_TYPE: Record<string, string> = {
-	default: 'default',
 	flat: 'flat',
+	original: 'original',
 } as const;
 
 const SETTING_TYPE = {
@@ -46,7 +46,7 @@ const BOOKMARKS_CALLER_DEFAULT_SETTINGS = {
 } as const;
 
 const SEARCH_BOOKMARKS_DEFAULT_SETTINGS = {
-	structureType: 'default',
+	structureType: 'flat',
 	recursivelyOpen: true,
 	showFooterButtons: true,
 	showLegends: true,

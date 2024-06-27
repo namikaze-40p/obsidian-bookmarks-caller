@@ -51,7 +51,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance, bookmarks: BookmarkItem[], upperLayers: BookmarkItem[][] = []) {
 		super(app);
 		this.settings = settings;
-		this.bookmarks = this.modalSettings.structureType === 'default' ? bookmarks : this.convertToFlatStructure(bookmarks);
+		this.bookmarks = this.modalSettings.structureType === 'original' ? bookmarks : this.convertToFlatStructure(bookmarks);
 		this.currentLayerItems = this.bookmarks;
 		this.upperLayers = upperLayers;
 
@@ -203,7 +203,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}
-		const isRecursivelyOpen = this.modalSettings.recursivelyOpen && this.modalSettings.structureType === 'default';
+		const isRecursivelyOpen = this.modalSettings.recursivelyOpen && this.modalSettings.structureType === 'original';
 		await openChildFiles(this.app, items, isRecursivelyOpen);
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
