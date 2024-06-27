@@ -1,10 +1,23 @@
-import { App, Modal, TFile, TFolder, setIcon } from 'obsidian';
+import { App, Modal, setIcon } from 'obsidian';
 import { Settings } from './settings';
-import { BookmarksPluginInstance, BookmarkItem, FileExplorerPluginInstance, GlobalSearchPluginInstance, GraphPluginInstance } from './types';
+import { BookmarksPluginInstance,
+	BookmarkItem,
+	FileExplorerPluginInstance,
+	GlobalSearchPluginInstance,
+	GraphPluginInstance,
+	CorePlugins,
+} from './types';
+import { getDisplayName,
+	getEnabledPluginById,
+	getTypeIcon,
+	openBookmarkOfFile,
+	openBookmarkOfFolder,
+	openBookmarkOfGraph,
+	openBookmarkOfSearch,
+	openChildFiles,
+} from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
-import { getEnabledPluginById } from './util';
 
-const VIEW_TYPE_EMPTY = 'empty'
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
@@ -25,13 +38,6 @@ const getButtonId = (bookmark?: BookmarkItem): string => {
 	return `${idPrefix}_${bookmark.cTime}`;
 };
 
-type CorePlugins = {
-	bookmarks: BookmarksPluginInstance | null,
-	fileExplorer: FileExplorerPluginInstance | null,
-	globalSearch: GlobalSearchPluginInstance | null,
-	graph: GraphPluginInstance | null,
-};
-
 type History = {
 	items: BookmarkItem[];
 	pagePosition: number;
@@ -41,10 +47,10 @@ type History = {
 export class BookmarksCallerModal extends Modal {
 	settings: Settings;
 	corePlugins: CorePlugins = {
-		bookmarks: null,
-		fileExplorer: null,
-		globalSearch: null,
-		graph: null,
+		bookmarks: void 0,
+		fileExplorer: void 0,
+		globalSearch: void 0,
+		graph: void 0,
 	};
 	chars: string[] = [];
 	histories: History[] = [];
@@ -126,9 +132,9 @@ export class BookmarksCallerModal extends Modal {
 				const itemBtnEl = el.createEl('button');
 				itemBtnEl.addClass('bc-leaf-name-btn');
 				itemBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
-				setIcon(itemBtnEl, this.getTypeIcon(item));
+				setIcon(itemBtnEl, getTypeIcon(item));
 
-				const name = this.getDisplayName(item);
+				const name = getDisplayName(this.app, item);
 				itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
 
 				this.buttonMap.set(getButtonId(item), itemBtnEl);
@@ -197,88 +203,29 @@ export class BookmarksCallerModal extends Modal {
 		this.headerTextEl.setText(path);
 	}
 
-	private getTypeIcon(bookmark: BookmarkItem): string {
-		switch (bookmark.type) {
-			case 'group':
-				return 'chevron-right';
-			case 'folder':
-				return 'folder-closed';
-			case 'file':
-				if (bookmark.subpath) {
-					return bookmark.subpath.slice(0, 2) === '#^' ? 'toy-brick' : 'heading';
-				} else {
-					return 'file';
-				}
-			case 'search':
-				return 'search';
-			case 'graph':
-				return 'git-fork';
-			default:
-				return '';
-		}
-	}
-
-	private getDisplayName(bookmark: BookmarkItem): string {
-		if (bookmark.title) {
-			return bookmark.title;
-		}
-		switch (bookmark.type) {
-			case 'folder':
-				return bookmark.path ?? '';
-			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-				return file instanceof TFile ? file.basename : '';
-			}
-			case 'search':
-				return bookmark.query ?? '';
-			case 'group':
-			case 'graph':
-			default:
-				return '';
-		}
-	}
-
 	private async clickItemButton(bookmark: BookmarkItem, idx: number): Promise<void> {
 		switch (bookmark.type) {
 			case 'group': {
-				const history = this.histories.at(-1) as History;
-				history.pagePosition = this.pagePosition;
-				history.focusPosition = idx;
-	
-				this.currentLayerItems = bookmark.items || [];
-				this.groups.push(`${bookmark.title}`);
-				this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
-				this.generateButtons(this.buttonsViewEl);
+				this.openBookmarkOfGroup(bookmark, idx);
 				break;
 			}
 			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-				if (file instanceof TFile) {
-					this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-				}
+				openBookmarkOfFile(this.app, bookmark);
 				this.close();
 				break;
 			}
 			case 'folder': {
-				const folder = this.app.vault.getAbstractFileByPath(bookmark.path ?? '');
-				if (folder instanceof TFolder && this.corePlugins.fileExplorer) {
-					this.corePlugins.fileExplorer.revealInFolder(folder);
-				}
+				openBookmarkOfFolder(this.app, bookmark, this.corePlugins.fileExplorer);
 				this.close();
 				break;
 			}
 			case 'search': {
-				if (this.corePlugins.globalSearch) {
-					this.corePlugins.globalSearch.openGlobalSearch(bookmark.query ?? '');
-				}
+				openBookmarkOfSearch(bookmark, this.corePlugins.globalSearch);
 				this.close();
 				break;
 			}
 			case 'graph': {
-				if (this.corePlugins.graph && this.corePlugins.bookmarks) {	
-					await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_EMPTY, active: true });
-					await this.corePlugins.bookmarks.openBookmark(bookmark, 'tab');
-				}
+				await openBookmarkOfGraph(this.app, bookmark, this.corePlugins.bookmarks, this.corePlugins.graph);
 				this.close();
 				break;
 			}
@@ -286,6 +233,17 @@ export class BookmarksCallerModal extends Modal {
 				// nop
 				break;
 		}
+	}
+
+	private openBookmarkOfGroup(bookmark: BookmarkItem, idx: number): void {
+		const history = this.histories.at(-1) as History;
+		history.pagePosition = this.pagePosition;
+		history.focusPosition = idx;
+
+		this.currentLayerItems = bookmark.items || [];
+		this.groups.push(`${bookmark.title}`);
+		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
+		this.generateButtons(this.buttonsViewEl);
 	}
 
 	private handlingKeyupEvent(ev: KeyboardEvent): void {
@@ -388,28 +346,8 @@ export class BookmarksCallerModal extends Modal {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}
-		const bookmarks = this.settings.recursivelyOpen ? items : items.filter(item => item.type === 'file');
-		for (const bookmark of bookmarks) {
-			switch (bookmark.type) {
-				case 'group':
-					await this.openAllFiles(bookmark.items || [], false);
-					break;
-				case 'file': {
-					const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-					if (file instanceof TFile) {
-						await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-					}
-					break;
-				}
-				// Not supported
-				case 'folder':
-				case 'search':
-				case 'graph':
-				default:
-					// nop
-					break;
-			}
-		}
+		const isRecursivelyOpen = this.settings.recursivelyOpen;
+		await openChildFiles(this.app, items, isRecursivelyOpen);
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
 			this.close();

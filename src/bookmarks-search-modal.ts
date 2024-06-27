@@ -1,10 +1,24 @@
-import { App, FuzzyMatch, FuzzySuggestModal, Platform, TFile, TFolder, setIcon } from 'obsidian';
-import { BookmarkItem, BookmarksPluginInstance, FileExplorerPluginInstance, GlobalSearchPluginInstance, GraphPluginInstance } from './types';
-import { getEnabledPluginById } from './util';
-import { VIEW_TYPE_BC_TMP } from './view';
+import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
 import { Settings } from './settings';
+import {
+	BookmarkItem,
+	BookmarksPluginInstance,
+	CorePlugins,
+	FileExplorerPluginInstance,
+	GlobalSearchPluginInstance,
+	GraphPluginInstance,
+} from './types';
+import { getDisplayName,
+	getEnabledPluginById,
+	getTypeIcon,
+	openBookmarkOfFile,
+	openBookmarkOfFolder,
+	openBookmarkOfGraph,
+	openBookmarkOfSearch,
+	openChildFiles,
+} from './util';
+import { VIEW_TYPE_BC_TMP } from './view';
 
-const VIEW_TYPE_EMPTY = 'empty'
 const SHORTCUT_KEY = {
 	all: 'Enter',
 	back: 'Backspace',
@@ -17,22 +31,15 @@ const FOOTER_ITEMS = [
 	{ keys: 'all', description: 'Open all files in current group' },
 ];
 
-type CorePlugins = {
-	bookmarks: BookmarksPluginInstance | null,
-	fileExplorer: FileExplorerPluginInstance | null,
-	globalSearch: GlobalSearchPluginInstance | null,
-	graph: GraphPluginInstance | null,
-};
-
 export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 	settings: Settings;
 	bookmarks: BookmarkItem[] = [];
 	currentLayerItems: BookmarkItem[] = [];
 	corePlugins: CorePlugins = {
-		bookmarks: null,
-		fileExplorer: null,
-		globalSearch: null,
-		graph: null,
+		bookmarks: void 0,
+		fileExplorer: void 0,
+		globalSearch: void 0,
+		graph: void 0,
 	};
 	upperLayers: BookmarkItem[][] = [];
 	eventListenerFunc: (ev: KeyboardEvent) => void;
@@ -66,7 +73,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 	}
   
 	getItemText(bookmark: BookmarkItem): string {
-		return this.getDisplayName(bookmark);
+		return getDisplayName(this.app, bookmark);
 	}
 
 	private generateFooter(contentEl: HTMLElement): void {
@@ -111,38 +118,23 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 	async onChooseItem(bookmark: BookmarkItem): Promise<void> {
 		switch (bookmark.type) {
 			case 'group': {
-				if (this.corePlugins.bookmarks) {
-					const bookmarks = bookmark.items || [];
-					const upperLayers = [...this.upperLayers, bookmarks];
-					new BookmarksSearchModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, upperLayers).open();
-				}
+				this.openBookmarkOfGroup(bookmark);
 				break;
 			}
 			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-				if (file instanceof TFile) {
-					this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-				}
+				openBookmarkOfFile(this.app, bookmark);
 				break;
 			}
 			case 'folder': {
-				const folder = this.app.vault.getAbstractFileByPath(bookmark.path ?? '');
-				if (folder instanceof TFolder && this.corePlugins.fileExplorer) {
-					this.corePlugins.fileExplorer.revealInFolder(folder);
-				}
+				openBookmarkOfFolder(this.app, bookmark, this.corePlugins.fileExplorer);
 				break;
 			}
 			case 'search': {
-				if (this.corePlugins.globalSearch) {
-					this.corePlugins.globalSearch.openGlobalSearch(bookmark.query ?? '');
-				}
+				openBookmarkOfSearch(bookmark, this.corePlugins.globalSearch);
 				break;
 			}
 			case 'graph': {
-				if (this.corePlugins.graph && this.corePlugins.bookmarks) {	
-					await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_EMPTY, active: true });
-					await this.corePlugins.bookmarks.openBookmark(bookmark, 'tab');
-				}
+				await openBookmarkOfGraph(this.app, bookmark, this.corePlugins.bookmarks, this.corePlugins.graph);
 				break;
 			}
 			default:
@@ -153,9 +145,17 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 
 	renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): HTMLElement {
 		const bookmark = item.item;
-		setIcon(suggestionItemEl, this.getTypeIcon(bookmark));
-		suggestionItemEl.createSpan('', spanEl => spanEl.setText(this.getDisplayName(bookmark)));
+		setIcon(suggestionItemEl, getTypeIcon(bookmark));
+		suggestionItemEl.createSpan('', spanEl => spanEl.setText(getDisplayName(this.app, bookmark)));
 		return suggestionItemEl;
+	}
+
+	private openBookmarkOfGroup(bookmark: BookmarkItem): void {
+		if (this.corePlugins.bookmarks) {
+			const bookmarks = bookmark.items || [];
+			const upperLayers = [...this.upperLayers, bookmarks];
+			new BookmarksSearchModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, upperLayers).open();
+		}
 	}
 
 	private convertToFlatStructure(bookmarks: BookmarkItem[]): BookmarkItem[] {
@@ -167,47 +167,6 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 			}
 		});
 		return items;
-	}
-
-	private getTypeIcon(bookmark: BookmarkItem): string {
-		switch (bookmark.type) {
-			case 'group':
-				return 'chevron-right';
-			case 'folder':
-				return 'folder-closed';
-			case 'file':
-				if (bookmark.subpath) {
-					return bookmark.subpath.slice(0, 2) === '#^' ? 'toy-brick' : 'heading';
-				} else {
-					return 'file';
-				}
-			case 'search':
-				return 'search';
-			case 'graph':
-				return 'git-fork';
-			default:
-				return '';
-		}
-	}
-
-	private getDisplayName(bookmark: BookmarkItem): string {
-		if (bookmark.title) {
-			return bookmark.title;
-		}
-		switch (bookmark.type) {
-			case 'folder':
-				return bookmark.path ?? '';
-			case 'file': {
-				const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-				return file instanceof TFile ? file.basename : '';
-			}
-			case 'search':
-				return bookmark.query ?? '';
-			case 'group':
-			case 'graph':
-			default:
-				return '';
-		}
 	}
 
 	private handlingKeyupEvent(ev: KeyboardEvent): void {
@@ -240,28 +199,8 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 		if (isTeardown) {
 			await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
 		}
-		const bookmarks = this.settings.bsRecursivelyOpen && this.settings.bsStructureType === 'default' ? items : items.filter(item => item.type === 'file');
-		for (const bookmark of bookmarks) {
-			switch (bookmark.type) {
-				case 'group':
-					await this.openAllFiles(bookmark.items || [], false);
-					break;
-				case 'file': {
-					const file = this.app.vault.getAbstractFileByPath(bookmark.path || '');
-					if (file instanceof TFile) {
-						await this.app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-					}
-					break;
-				}
-				// Not supported
-				case 'folder':
-				case 'search':
-				case 'graph':
-				default:
-					// nop
-					break;
-			}
-		}
+		const isRecursivelyOpen = this.settings.bsRecursivelyOpen && this.settings.bsStructureType === 'default';
+		await openChildFiles(this.app, items, isRecursivelyOpen);
 		if (isTeardown) {
 			this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
 			this.close();

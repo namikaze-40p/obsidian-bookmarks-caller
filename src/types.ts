@@ -6,6 +6,13 @@ export type CustomApp = App & {
 	},
 };
 
+export type CorePlugins = {
+	bookmarks: BookmarksPluginInstance | undefined,
+	fileExplorer: FileExplorerPluginInstance | undefined,
+	globalSearch: GlobalSearchPluginInstance | undefined,
+	graph: GraphPluginInstance | undefined,
+};
+
 export type PluginInstance = BookmarksPluginInstance | FileExplorerPluginInstance | GlobalSearchPluginInstance | GraphPluginInstance;
 
 type BasicPluginParams = {
