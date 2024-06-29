@@ -20,6 +20,7 @@ export default class BookmarkCaller extends Plugin {
 		);
 
 		this.addRibbonIcon('bookmark', 'Open bookmarks caller', () => this.openBookmarksCallerModal());
+		this.addRibbonIcon('bookmark-check', 'Search bookmarks', () => this.openBookmarksSearchModal());
 
 		this.addCommand({
 			id: 'open-bookmarks-caller',
