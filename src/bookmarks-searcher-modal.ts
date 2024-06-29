@@ -1,5 +1,5 @@
 import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
-import { SORT_ORDER, SearchBookmarksSettings, Settings } from './settings';
+import { SORT_ORDER, STRUCTURE_TYPE, SearchBookmarksSettings, Settings } from './settings';
 import {
 	BookmarkItem,
 	BookmarksPluginInstance,
@@ -60,7 +60,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		super(app);
 		this.settings = settings;
 		const clone = structuredClone(bookmarks);
-		const items = this.modalSettings.structureType === 'original' ? clone : this.convertToFlatStructure(clone);
+		const items = this.modalSettings.structureType === STRUCTURE_TYPE.original ? clone : this.convertToFlatStructure(clone);
 		const sort = this.modalSettings.sortOrder;
 		this.bookmarks = sort === SORT_ORDER.original ? items : items.sort(compareCreationTime(sort === SORT_ORDER.newer));
 		this.currentLayerItems = this.bookmarks;

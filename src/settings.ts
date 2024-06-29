@@ -2,17 +2,6 @@ import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian'
 import BookmarkCaller from './main';
 import { createStyles, deleteStyles } from './util';
 
-export const STRUCTURE_TYPE: Record<string, string> = {
-	flat: 'flat',
-	original: 'original',
-} as const;
-
-export const SORT_ORDER: Record<string, string> = {
-	original: 'original',
-	newer: 'newer',
-	older: 'older',
-} as const;
-
 const SETTING_TYPE = {
 	openBookmarksCaller: 'openBookmarksCaller',
 	searchBookmarks: 'searchBookmarks',
@@ -64,6 +53,17 @@ const SEARCH_BOOKMARKS_DEFAULT_SETTINGS = {
 export const DEFAULT_SETTINGS: Settings = {
 	[SETTING_TYPE.openBookmarksCaller]: BOOKMARKS_CALLER_DEFAULT_SETTINGS,
 	[SETTING_TYPE.searchBookmarks]: SEARCH_BOOKMARKS_DEFAULT_SETTINGS,
+} as const;
+
+export const STRUCTURE_TYPE: Record<string, string> = {
+	flat: 'flat',
+	original: 'original',
+} as const;
+
+export const SORT_ORDER: Record<string, string> = {
+	original: 'original',
+	newer: 'newer',
+	older: 'older',
 } as const;
 
 export const CHAR_LENGTH = {
@@ -145,7 +145,7 @@ export class SettingTab extends PluginSettingTab {
 	}
 
 	private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
-		const settingType = 'openBookmarksCaller';
+		const settingType = SETTING_TYPE.openBookmarksCaller;
 		const settings = this.plugin.settings[settingType];
 
 		new Setting(detailsEl)
@@ -283,7 +283,7 @@ export class SettingTab extends PluginSettingTab {
 	}
 
 	private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
-		const settingType = 'searchBookmarks';
+		const settingType = SETTING_TYPE.searchBookmarks;
 		const settings = this.plugin.settings[settingType];
 
 		new Setting(detailsEl)
