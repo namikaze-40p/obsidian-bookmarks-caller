@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-bookmarks-caller",
-	"version": "0.4.2",
+	"version": "0.5.0",
 	"description": "This is an Obsidian plugin which can easily open bookmarks without leaving the keyboard home position.",
 	"main": "main.js",
 	"scripts": {
