@@ -35,7 +35,7 @@ const getButtonId = (bookmark?: BookmarkItem): string => {
 		return '';
 	}
 	const idPrefix = (bookmark.title ?? bookmark.path) as string;
-	return `${idPrefix}_${bookmark.cTime}`;
+	return `${idPrefix}_${bookmark.ctime}`;
 };
 
 type History = {

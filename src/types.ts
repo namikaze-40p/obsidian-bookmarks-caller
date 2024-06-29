@@ -42,7 +42,7 @@ export type GraphPluginInstance = BasicPluginParams;
 export type BookmarkType = 'group' | 'folder' | 'file' | 'graph' | 'search';
 
 export type BookmarkItem = {
-	cTime: number;
+	ctime: number;
 	type: BookmarkType;
 	title?: string;
 	items?: BookmarkItem[];
