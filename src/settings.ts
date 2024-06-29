@@ -280,7 +280,7 @@ export class SettingTab extends PluginSettingTab {
 
 		new Setting(detailsEl)
 			.setName('Type of structure in the list view')
-			.setDesc('"default" displays the structure as defined in the Bookmarks core plugin. "flat" displays nested groups in a flattened structure.')
+			.setDesc('"flat" displays nested groups in a flattened structure. “original" displays the structure as defined in the Bookmarks core plugin.')
 			.addDropdown(item => item
 				.addOptions(STRUCTURE_TYPE)
 				.setValue(settings.structureType)
