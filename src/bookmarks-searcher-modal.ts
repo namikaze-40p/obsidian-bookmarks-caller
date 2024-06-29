@@ -1,5 +1,5 @@
 import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
-import { SearchBookmarksSettings, Settings } from './settings';
+import { SORT_ORDER, SearchBookmarksSettings, Settings } from './settings';
 import {
 	BookmarkItem,
 	BookmarksPluginInstance,
@@ -31,6 +31,14 @@ const FOOTER_ITEMS = [
 	{ keys: 'all', description: 'Open all files in current group' },
 ];
 
+const compareCreationTime = (isNewer: boolean) => (a: BookmarkItem, b: BookmarkItem): number => {
+	if (isNewer) {
+		return b.ctime - a.ctime;
+	} else {
+		return a.ctime - b.ctime;
+	}
+}
+
 export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	settings: Settings;
 	bookmarks: BookmarkItem[] = [];
@@ -51,7 +59,10 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance, bookmarks: BookmarkItem[], upperLayers: BookmarkItem[][] = []) {
 		super(app);
 		this.settings = settings;
-		this.bookmarks = this.modalSettings.structureType === 'original' ? bookmarks : this.convertToFlatStructure(bookmarks);
+		const clone = structuredClone(bookmarks);
+		const items = this.modalSettings.structureType === 'original' ? clone : this.convertToFlatStructure(clone);
+		const sort = this.modalSettings.sortOrder;
+		this.bookmarks = sort === SORT_ORDER.original ? items : items.sort(compareCreationTime(sort === SORT_ORDER.newer));
 		this.currentLayerItems = this.bookmarks;
 		this.upperLayers = upperLayers;
 

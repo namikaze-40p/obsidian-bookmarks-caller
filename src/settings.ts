@@ -7,6 +7,12 @@ export const STRUCTURE_TYPE: Record<string, string> = {
 	original: 'original',
 } as const;
 
+export const SORT_ORDER: Record<string, string> = {
+	original: 'original',
+	newer: 'newer',
+	older: 'older',
+} as const;
+
 const SETTING_TYPE = {
 	openBookmarksCaller: 'openBookmarksCaller',
 	searchBookmarks: 'searchBookmarks',
@@ -24,6 +30,7 @@ export interface OpenBookmarksCallerSettings {
 
 export interface SearchBookmarksSettings {
 	structureType: string;
+	sortOrder: string;
 	recursivelyOpen: boolean;
 	showFooterButtons: boolean;
 	showLegends: boolean;
@@ -47,6 +54,7 @@ const BOOKMARKS_CALLER_DEFAULT_SETTINGS = {
 
 const SEARCH_BOOKMARKS_DEFAULT_SETTINGS = {
 	structureType: 'flat',
+	sortOrder: 'original',
 	recursivelyOpen: true,
 	showFooterButtons: true,
 	showLegends: true,
@@ -292,6 +300,27 @@ export class SettingTab extends PluginSettingTab {
 			)
 			.then(settingEl => {
 				const setDefaultValue = () => settings.structureType = DEFAULT_SETTINGS[settingType].structureType;
+				this.addResetButton(settingEl, setDefaultValue);
+			});
+			
+		new Setting(detailsEl)
+			.setName('Sort order')
+			.setDesc(`
+				"original" is displayed in the order defined by the Bookmarks core plugin. 
+				"newer" is displayed in order of newer bookmark's creation time. 
+				“older” is displayed in order of older bookmark's creation time.
+			`)
+			.addDropdown(item => item
+				.addOptions(SORT_ORDER)
+				.setValue(settings.sortOrder)
+				.onChange(async value => {
+					settings.sortOrder = value;
+					await this.plugin.saveData(this.plugin.settings);
+					this.display();
+				}),
+			)
+			.then(settingEl => {
+				const setDefaultValue = () => settings.sortOrder = DEFAULT_SETTINGS[settingType].sortOrder;
 				this.addResetButton(settingEl, setDefaultValue);
 			});
 			
