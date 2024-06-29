@@ -31,7 +31,7 @@ const FOOTER_ITEMS = [
 	{ keys: 'all', description: 'Open all files in current group' },
 ];
 
-export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
+export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	settings: Settings;
 	bookmarks: BookmarkItem[] = [];
 	currentLayerItems: BookmarkItem[] = [];
@@ -158,7 +158,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 		if (this.corePlugins.bookmarks) {
 			const bookmarks = bookmark.items || [];
 			const upperLayers = [...this.upperLayers, bookmarks];
-			new BookmarksSearchModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, upperLayers).open();
+			new BookmarksSearcherModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, upperLayers).open();
 		}
 	}
 
@@ -194,7 +194,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 		if (this.corePlugins.bookmarks) {
 			this.upperLayers.pop();
 			const bookmarks = this.upperLayers.at(-1) || [];
-			new BookmarksSearchModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, this.upperLayers).open();
+			new BookmarksSearcherModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, this.upperLayers).open();
 			this.close();
 		}
 	}

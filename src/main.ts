@@ -2,7 +2,7 @@ import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SettingTab, Settings } from './settings';
 import { BookmarksPluginInstance } from './types';
 import { BookmarksCallerModal } from './bookmarks-caller-modal';
-import { BookmarksSearchModal } from './bookmarks-search-modal';
+import { BookmarksSearcherModal } from './bookmarks-searcher-modal';
 import { MessageModal } from './message-modal';
 import { BcTmpView, VIEW_TYPE_BC_TMP } from './view';
 import { getEnabledPluginById } from './util';
@@ -20,7 +20,7 @@ export default class BookmarkCaller extends Plugin {
 		);
 
 		this.addRibbonIcon('bookmark', 'Open bookmarks caller', () => this.openBookmarksCallerModal());
-		this.addRibbonIcon('bookmark-check', 'Search bookmarks', () => this.openBookmarksSearchModal());
+		this.addRibbonIcon('bookmark-check', 'Search bookmarks', () => this.openBookmarksSearcherModal());
 
 		this.addCommand({
 			id: 'open-bookmarks-caller',
@@ -31,7 +31,7 @@ export default class BookmarkCaller extends Plugin {
 		this.addCommand({
 			id: 'search-bookmarks',
 			name: 'Search bookmarks',
-			callback: () => this.openBookmarksSearchModal(),
+			callback: () => this.openBookmarksSearcherModal(),
 		});
 
 		this.settingTab = new SettingTab(this.app, this);
@@ -62,11 +62,11 @@ export default class BookmarkCaller extends Plugin {
 		}
 	}
 
-	private openBookmarksSearchModal(): void {
+	private openBookmarksSearcherModal(): void {
 		const bookmarksPlugin = getEnabledPluginById(this.app, 'bookmarks') as BookmarksPluginInstance;
 		if (bookmarksPlugin) {
 			const bookmarks = bookmarksPlugin.items;
-			new BookmarksSearchModal(this.app, this.settings, bookmarksPlugin, bookmarks, [bookmarks]).open();
+			new BookmarksSearcherModal(this.app, this.settings, bookmarksPlugin, bookmarks, [bookmarks]).open();
 		} else {
 			new MessageModal(this.app).open();
 		}
