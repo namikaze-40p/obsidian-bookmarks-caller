@@ -151,8 +151,8 @@ export class BookmarksCallerModal extends Modal {
 
 	private generateFooter(contentEl: HTMLElement): void {
 		contentEl.createDiv('bc-footer', el => {
-			el.createDiv('bc-page-nav', navEl => {
-				if (this.modalSettings.showFooterButtons) {
+			if (this.modalSettings.showFooterButtons) {
+				el.createDiv('bc-page-nav', navEl => {
 					const backBtnEl = navEl.createEl('button');
 					setIcon(backBtnEl, 'undo-2');
 					backBtnEl.createSpan('').setText('Back');
@@ -178,8 +178,8 @@ export class BookmarksCallerModal extends Modal {
 					openBtnEl.setAttr('tabIndex', -1);
 					openBtnEl.addClass('bc-nav-btn');
 					openBtnEl.addEventListener('click', () => this.openAllFiles(this.currentLayerItems));
-				}
-			});
+				});
+			}
 
 			if (this.modalSettings.showLegends) {
 				FOOTER_ITEMS.forEach(item => {
