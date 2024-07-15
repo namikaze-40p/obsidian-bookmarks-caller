@@ -1,6 +1,6 @@
 # Obsidian Bookmarks Caller
 
-This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmarks without leaving the keyboard home position.
+This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmarks.
 
 > [!NOTE]
 >

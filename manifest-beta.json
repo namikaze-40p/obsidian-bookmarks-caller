@@ -3,7 +3,7 @@
 	"name": "Bookmarks Caller",
 	"version": "0.5.1",
 	"minAppVersion": "1.6.5",
-	"description": "Easily open bookmarks without leaving the keyboard home position.",
+	"description": "Easily open bookmarks.",
 	"author": "namikaze-40p",
 	"authorUrl": "https://github.com/namikaze-40p",
 	"isDesktopOnly": false
