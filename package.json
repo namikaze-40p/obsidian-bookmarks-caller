@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-bookmarks-caller",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "This is an Obsidian plugin which can easily open bookmarks.",
 	"main": "main.js",
 	"scripts": {
