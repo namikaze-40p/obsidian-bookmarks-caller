@@ -98,7 +98,6 @@ export class SettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.addClass('bc-settings');
-		containerEl.createEl('h2').setText('Bookmarks Caller - Settings');
 
 		{
 			const detailsEl = containerEl.createEl('details', '', el => {
