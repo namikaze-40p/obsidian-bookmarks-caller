@@ -1,7 +1,7 @@
 {
 	"id": "bookmarks-caller",
 	"name": "Bookmarks Caller",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"minAppVersion": "1.6.7",
 	"description": "Easily open bookmarks.",
 	"author": "namikaze-40p",
