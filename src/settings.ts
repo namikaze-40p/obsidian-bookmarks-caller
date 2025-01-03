@@ -133,11 +133,9 @@ export class SettingTab extends PluginSettingTab {
 		}
 
 		const { openBookmarksCaller, searchBookmarks } = this.plugin.settings;
-		const { characters, focusColor } = openBookmarksCaller;
+		const { focusColor } = openBookmarksCaller;
 		const { focusColor: sbFocusColor } = searchBookmarks;
 		createStyles([
-			// 32 is button's height. 8 is margin of between buttons.
-			{ selector: '.bc-buttons-view', property: 'min-height', value: `${32 * characters.length + 8 * (characters.length - 1)}px` },
 			{ selector: '.bc-leaf-name-btn:focus', property: 'outline', value: `2px solid ${focusColor}` },
 			{ selector: '.bookmarks-search-modal .suggestion-item.is-selected', property: 'outline', value: `2px solid ${sbFocusColor}` },
 		]);

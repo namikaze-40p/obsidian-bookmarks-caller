@@ -1,13 +1,15 @@
 import { App, Modal, setIcon } from 'obsidian';
 import { OpenBookmarksCallerSettings, Settings } from './settings';
-import { BookmarksPluginInstance,
+import {
+	BookmarksPluginInstance,
 	BookmarkItem,
 	FileExplorerPluginInstance,
 	GlobalSearchPluginInstance,
 	GraphPluginInstance,
 	CorePlugins,
 } from './types';
-import { getDisplayName,
+import {
+	getDisplayName,
 	getEnabledPluginById,
 	getTypeIcon,
 	openBookmarkOfFile,
@@ -60,6 +62,7 @@ export class BookmarksCallerModal extends Modal {
 	groups: string[] = ['.'];
 	buttonsViewEl: HTMLDivElement;
 	headerTextEl: HTMLSpanElement;
+	footerEl: HTMLDivElement;
 	eventListenerFunc: (ev: KeyboardEvent) => void;
 
 	private _currentLayerItems: BookmarkItem[] = [];
@@ -98,7 +101,7 @@ export class BookmarksCallerModal extends Modal {
 
 		this.generateHeader(this.contentEl);
 		this.buttonsViewEl = this.contentEl.createDiv('bc-buttons-view');
-		this.generateButtons(this.buttonsViewEl);
+		this.generateContent(this.buttonsViewEl);
 		this.generateFooter(this.contentEl);
 
 		this.eventListenerFunc = this.handlingKeyupEvent.bind(this);
@@ -117,15 +120,22 @@ export class BookmarksCallerModal extends Modal {
 		});
 	}
 
-	private generateButtons(contentEl: HTMLElement, pagePosition = 0, focusPosition = 0): void {
+	private generateContent(contentEl: HTMLElement, pagePosition = 0, focusPosition = 0): void {
 		contentEl.empty();
 		this.focusPosition = focusPosition;
 		this.pagePosition = pagePosition;
 
-		if (!this.viewItems.length) {
+		if (this.viewItems.length) {
+			this.generateButtons(contentEl);
+			this.generateDummyButtons(contentEl);
+			(this.buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
+			this.updateHeaderText();
+		} else {
 			contentEl.createSpan().setText('No items found in this group.');
 		}
+	}
 
+	private generateButtons(contentEl: HTMLElement): void {
 		this.viewItems.forEach((item, idx) => {
 			contentEl.createDiv('bc-leaf-row', el => {
 				const shortcutBtnEl = el.createEl('button', { text: this.chars.at(idx) });
@@ -144,13 +154,28 @@ export class BookmarksCallerModal extends Modal {
 				this.buttonMap.set(getButtonId(item), itemBtnEl);
 			});
 		});
+	}
 
-		(this.buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
-		this.updateHeaderText();
+	private generateDummyButtons(contentEl: HTMLElement): void {
+		const dummyButtonCount = this.chars.length - this.viewItems.length;
+		for (let i = 0; i < dummyButtonCount; i++) {			
+			contentEl.createDiv('bc-leaf-row bc-leaf-row-invisible', el => {
+				const itemBtnEl = el.createEl('button');
+				itemBtnEl.addClass('bc-leaf-name-btn');
+				itemBtnEl.setAttr('disabled', true);
+				
+				const itemNameEl = itemBtnEl.createSpan('bc-leaf-name');
+				itemNameEl.setText('-');
+			});
+		}
 	}
 
 	private generateFooter(contentEl: HTMLElement): void {
-		contentEl.createDiv('bc-footer', el => {
+		this.footerEl?.empty();
+		if (!this.viewItems.length) { 
+			return;
+		}
+		this.footerEl = contentEl.createDiv('bc-footer', el => {
 			if (this.modalSettings.showFooterButtons) {
 				el.createDiv('bc-page-nav', navEl => {
 					const backBtnEl = navEl.createEl('button');
@@ -247,7 +272,8 @@ export class BookmarksCallerModal extends Modal {
 		this.currentLayerItems = bookmark.items || [];
 		this.groups.push(`${bookmark.title}`);
 		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
-		this.generateButtons(this.buttonsViewEl);
+		this.generateContent(this.buttonsViewEl);
+		this.generateFooter(this.contentEl);
 	}
 
 	private handlingKeyupEvent(ev: KeyboardEvent): void {
@@ -312,7 +338,7 @@ export class BookmarksCallerModal extends Modal {
 				} else {
 					this.pagePosition -= 1;
 				}
-				this.generateButtons(this.buttonsViewEl, this.pagePosition);
+				this.generateContent(this.buttonsViewEl, this.pagePosition);
 				break;
 			}
 			case RIGHT_KEY: {
@@ -326,7 +352,7 @@ export class BookmarksCallerModal extends Modal {
 				} else {
 					this.pagePosition += 1;
 				}
-				this.generateButtons(this.buttonsViewEl, this.pagePosition);
+				this.generateContent(this.buttonsViewEl, this.pagePosition);
 				break;
 			}
 			default:
@@ -342,7 +368,8 @@ export class BookmarksCallerModal extends Modal {
 
 			const { items, pagePosition, focusPosition} = this.histories.at(-1) as History;
 			this.currentLayerItems = items;
-			this.generateButtons(this.buttonsViewEl, pagePosition, focusPosition);
+			this.generateContent(this.buttonsViewEl, pagePosition, focusPosition);
+			this.generateFooter(this.contentEl);
 		}
 	}
 
