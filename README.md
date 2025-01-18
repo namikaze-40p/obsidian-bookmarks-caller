@@ -52,6 +52,16 @@ This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmar
 
 ![demo](https://raw.githubusercontent.com/namikaze-40p/obsidian-bookmarks-caller/main/demo/ver-0.5.0/search-bookmarks.gif)
 
+### `Copy bookmarks.json to clipboard`
+
+1. Call the command in one of the following ways.
+    1. Using hotkey.
+    1. Selecting `Bookmarks Caller: Copy bookmarks.json to clipboard` from the command palette.
+
+> [!NOTE]
+>
+> - This is an experimental feature. It may be discontinued in the future.
+
 ## Installation
 
 Install the plugin in one of the following ways.

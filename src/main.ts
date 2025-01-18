@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SettingTab, Settings } from './settings';
 import { BookmarksPluginInstance } from './types';
 import { BookmarksCallerModal } from './bookmarks-caller-modal';
@@ -34,6 +34,12 @@ export default class BookmarkCaller extends Plugin {
 			callback: () => this.openBookmarksSearcherModal(),
 		});
 
+		this.addCommand({
+			id: 'copy-bookmarks-json',
+			name: 'Copy bookmarks.json to clipboard',
+			callback: () => this.copyBookmarksJson(),
+		});
+
 		this.settingTab = new SettingTab(this.app, this);
 		this.addSettingTab(this.settingTab);
 		this.settingTab.updateStyleSheet();
@@ -67,6 +73,18 @@ export default class BookmarkCaller extends Plugin {
 		if (bookmarksPlugin) {
 			const bookmarks = bookmarksPlugin.items;
 			new BookmarksSearcherModal(this.app, this.settings, bookmarksPlugin, bookmarks, [bookmarks]).open();
+		} else {
+			new MessageModal(this.app).open();
+		}
+	}
+
+	private copyBookmarksJson(): void {
+		const bookmarksPlugin = getEnabledPluginById(this.app, 'bookmarks') as BookmarksPluginInstance;
+		if (bookmarksPlugin) {
+			if (navigator.clipboard) {
+				const data = JSON.stringify({ items: bookmarksPlugin.items });
+				navigator.clipboard.writeText(data).then(() => new Notice('Copied bookmarks.json to clipboard.'));
+			}
 		} else {
 			new MessageModal(this.app).open();
 		}
