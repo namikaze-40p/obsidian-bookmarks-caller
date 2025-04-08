@@ -31,6 +31,8 @@
 }
 
 .modal.bookmarks-caller-modal {
+	width: min(700px, 100%);
+
 	& .bc-header {
 		display: flex;
 		gap: 0.25rem;
@@ -101,6 +103,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem 1rem;
+
 		&:has(div) {
 			margin-top: 1rem;
 		}
@@ -177,6 +180,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem 1rem;
+
 		&:has(div) {
 			padding: 1rem;
 			border-top: 1px solid #aaaa;
