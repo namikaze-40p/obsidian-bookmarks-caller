@@ -109,7 +109,7 @@ export const openChildFiles = async (app: App, items: BookmarkItem[], isRecursiv
 	}
 }
 
-export const deleteStyles = () => {
+export const deleteStyles = (): void => {
 	const styleElm = document.getElementById(STYLES_ID);
 	if (styleElm) {
 		document.getElementsByTagName('HEAD')[0].removeChild(styleElm);

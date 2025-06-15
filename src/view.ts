@@ -7,19 +7,19 @@ export class BcTmpView extends ItemView {
     super(leaf);
   }
 
-  getViewType() {
+	getViewType(): string {
     return VIEW_TYPE_BC_TMP;
   }
 
-  getDisplayText() {
+  getDisplayText(): string {
     return '';
   }
 
-  async onOpen() {
+  async onOpen(): Promise<void> {
 	// nop
   }
 
-  async onClose() {
+  async onClose(): Promise<void> {
     // Nothing to clean up.
   }
 }

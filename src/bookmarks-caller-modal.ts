@@ -96,7 +96,7 @@ export class BookmarksCallerModal extends Modal {
 		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GraphPluginInstance;
 	}
 
-	onOpen() {
+	onOpen(): void {
 		this.modalEl.addClasses(['bookmarks-caller-modal', 'bc-modal']);
 
 		this.generateHeader(this.contentEl);
@@ -108,7 +108,7 @@ export class BookmarksCallerModal extends Modal {
 		window.addEventListener('keyup', this.eventListenerFunc);
 	}
 
-	onClose() {
+	onClose(): void {
 		window.removeEventListener('keyup', this.eventListenerFunc);
 		this.contentEl.empty();
 	}

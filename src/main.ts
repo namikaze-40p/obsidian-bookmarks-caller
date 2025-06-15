@@ -11,7 +11,7 @@ export default class BookmarkCaller extends Plugin {
 	settings: Settings;
 	settingTab: SettingTab;
 
-	async onload() {
+	async onload(): Promise<void> {
 		await this.loadSettings();
 
 		this.registerView(
@@ -45,17 +45,17 @@ export default class BookmarkCaller extends Plugin {
 		this.settingTab.updateStyleSheet();
 	}
 
-	onunload() {
+	onunload(): void {
 		this.settingTab.updateStyleSheet(true);
 		this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
 	}
 
-	async loadSettings() {
+	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		this.migrateSettingValues();
 	}
 
-	async saveSettings() {
+	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 	}
 

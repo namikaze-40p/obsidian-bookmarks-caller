@@ -79,7 +79,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		this.modalEl.addClasses(['bookmarks-search-modal', 'bs-modal']);
 	}
 
-	onClose() {
+	onClose(): void {
 		window.removeEventListener('keyup', this.eventListenerFunc);
 	}
 

@@ -5,7 +5,7 @@ export class MessageModal extends Modal {
 		super(app);
 	}
 
-	onOpen() {
+	onOpen(): void {
 		this.modalEl.addClasses(['bookmarks-message-modal', 'bm-modal']);
 
 		const divEl = this.contentEl.createDiv('bm-contents');
@@ -21,7 +21,7 @@ export class MessageModal extends Modal {
 		anchorEl.setAttr('href', link);
 	}
 
-	onClose() {
+	onClose(): void {
 		this.contentEl.empty();
 	}
 }
