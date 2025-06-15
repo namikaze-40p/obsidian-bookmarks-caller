@@ -40,51 +40,49 @@ const compareCreationTime = (isNewer: boolean) => (a: BookmarkItem, b: BookmarkI
 }
 
 export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
-	settings: Settings;
-	bookmarks: BookmarkItem[] = [];
-	currentLayerItems: BookmarkItem[] = [];
-	corePlugins: CorePlugins = {
+	private _currentLayerItems: BookmarkItem[] = [];
+	private _corePlugins: CorePlugins = {
 		bookmarks: void 0,
 		fileExplorer: void 0,
 		globalSearch: void 0,
 		graph: void 0,
 	};
-	upperLayers: BookmarkItem[][] = [];
-	eventListenerFunc: (ev: KeyboardEvent) => void;
+	private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
-	get modalSettings(): SearchBookmarksSettings {
-		return this.settings.searchBookmarks;
+	private get modalSettings(): SearchBookmarksSettings {
+		return this._settings.searchBookmarks;
 	}
 
-	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance, bookmarks: BookmarkItem[], upperLayers: BookmarkItem[][] = []) {
+	constructor(app: App, private _settings: Settings, private _bookmarksPlugin: BookmarksPluginInstance, private _bookmarks: BookmarkItem[], private _upperLayers: BookmarkItem[][] = []) {
 		super(app);
-		this.settings = settings;
-		const clone = structuredClone(bookmarks);
+
+		const clone = structuredClone(this._bookmarks);
 		const items = this.modalSettings.structureType === STRUCTURE_TYPE.original ? clone : this.convertToFlatStructure(clone);
 		const sort = this.modalSettings.sortOrder;
-		this.bookmarks = sort === SORT_ORDER.original ? items : items.sort(compareCreationTime(sort === SORT_ORDER.newer));
-		this.currentLayerItems = this.bookmarks;
-		this.upperLayers = upperLayers;
+		this._bookmarks = sort === SORT_ORDER.original ? items : items.sort(compareCreationTime(sort === SORT_ORDER.newer));
+		this._currentLayerItems = this._bookmarks;
 
-		this.corePlugins.bookmarks = bookmarksPlugin;
-		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance;
-		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance;
-		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GraphPluginInstance;
+		this._corePlugins = {
+			bookmarks: this._bookmarksPlugin,
+			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
+			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
+			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
+		};
 
 		this.setPlaceholder('Search bookmarks');
 
-		this.eventListenerFunc = this.handlingKeyupEvent.bind(this);
-		window.addEventListener('keyup', this.eventListenerFunc);
+		this._eventListenerFunc = this.handlingKeyupEvent.bind(this);
+		window.addEventListener('keyup', this._eventListenerFunc);
 		this.generateFooter(this.modalEl);
 		this.modalEl.addClasses(['bookmarks-search-modal', 'bs-modal']);
 	}
 
 	onClose(): void {
-		window.removeEventListener('keyup', this.eventListenerFunc);
+		window.removeEventListener('keyup', this._eventListenerFunc);
 	}
 
 	getItems(): BookmarkItem[] {
-		return this.currentLayerItems;
+		return this._currentLayerItems;
 	}
   
 	getItemText(bookmark: BookmarkItem): string {
@@ -107,7 +105,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 					openBtnEl.createSpan('').setText('All');
 					openBtnEl.setAttr('tabIndex', -1);
 					openBtnEl.addClass('bs-btn');
-					openBtnEl.addEventListener('click', () => this.openAllFiles(this.currentLayerItems));
+					openBtnEl.addEventListener('click', () => this.openAllFiles(this._currentLayerItems));
 				});
 			}
 
@@ -141,15 +139,15 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 				break;
 			}
 			case 'folder': {
-				openBookmarkOfFolder(this.app, bookmark, this.corePlugins.fileExplorer);
+				openBookmarkOfFolder(this.app, bookmark, this._corePlugins.fileExplorer);
 				break;
 			}
 			case 'search': {
-				openBookmarkOfSearch(bookmark, this.corePlugins.globalSearch);
+				openBookmarkOfSearch(bookmark, this._corePlugins.globalSearch);
 				break;
 			}
 			case 'graph': {
-				await openBookmarkOfGraph(this.app, bookmark, this.corePlugins.bookmarks, this.corePlugins.graph);
+				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
 				break;
 			}
 			default:
@@ -166,10 +164,10 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	}
 
 	private openBookmarkOfGroup(bookmark: BookmarkItem): void {
-		if (this.corePlugins.bookmarks) {
+		if (this._corePlugins.bookmarks) {
 			const bookmarks = bookmark.items || [];
-			const upperLayers = [...this.upperLayers, bookmarks];
-			new BookmarksSearcherModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, upperLayers).open();
+			const upperLayers = [...this._upperLayers, bookmarks];
+			new BookmarksSearcherModal(this.app, this._settings, this._corePlugins.bookmarks, bookmarks, upperLayers).open();
 		}
 	}
 
@@ -192,20 +190,20 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		}
 
 		if (ev.key === SHORTCUT_KEY.all && ev.shiftKey) {
-			this.openAllFiles(this.currentLayerItems);
+			this.openAllFiles(this._currentLayerItems);
 			ev.preventDefault();
 			return;
 		}
 	}
 
 	private backToParentLayer(): void {
-		if (this.upperLayers.length <= 1) {
+		if (this._upperLayers.length <= 1) {
 			return;
 		}
-		if (this.corePlugins.bookmarks) {
-			this.upperLayers.pop();
-			const bookmarks = this.upperLayers.at(-1) || [];
-			new BookmarksSearcherModal(this.app, this.settings, this.corePlugins.bookmarks, bookmarks, this.upperLayers).open();
+		if (this._corePlugins.bookmarks) {
+			this._upperLayers.pop();
+			const bookmarks = this._upperLayers.at(-1) || [];
+			new BookmarksSearcherModal(this.app, this._settings, this._corePlugins.bookmarks, bookmarks, this._upperLayers).open();
 			this.close();
 		}
 	}

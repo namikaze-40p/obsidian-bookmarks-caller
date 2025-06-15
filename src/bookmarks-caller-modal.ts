@@ -47,88 +47,80 @@ type History = {
 }
 
 export class BookmarksCallerModal extends Modal {
-	settings: Settings;
-	corePlugins: CorePlugins = {
+	private _corePlugins: CorePlugins = {
 		bookmarks: void 0,
 		fileExplorer: void 0,
 		globalSearch: void 0,
 		graph: void 0,
 	};
-	chars: string[] = [];
-	histories: History[] = [];
-	buttonMap: Map<string, HTMLButtonElement> = new Map();
-	pagePosition = 0;
-	focusPosition = 0;
-	groups: string[] = ['.'];
-	buttonsViewEl: HTMLDivElement;
-	headerTextEl: HTMLSpanElement;
-	footerEl: HTMLDivElement;
-	eventListenerFunc: (ev: KeyboardEvent) => void;
-
+	private _chars: string[] = [];
 	private _currentLayerItems: BookmarkItem[] = [];
+	private _histories: History[] = [];
+	private _buttonMap: Map<string, HTMLButtonElement> = new Map();
+	private _pagePosition = 0;
+	private _focusPosition = 0;
+	private _groups: string[] = ['.'];
+	private _buttonsViewEl: HTMLDivElement;
+	private _headerTextEl: HTMLSpanElement;
+	private _footerEl: HTMLDivElement;
+	private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
-	set currentLayerItems(value: BookmarkItem[]) {
-		this._currentLayerItems = value;
+	private get viewItems(): BookmarkItem[] {
+		return this._currentLayerItems.slice(this._pagePosition * this._chars.length, this._chars.length + this._pagePosition * this._chars.length);
 	}
 
-	get currentLayerItems(): BookmarkItem[] {
-		return this._currentLayerItems;
+	private get modalSettings(): OpenBookmarksCallerSettings {
+		return this._settings.openBookmarksCaller;
 	}
 
-	get viewItems(): BookmarkItem[] {
-		return this._currentLayerItems.slice(this.pagePosition * this.chars.length, this.chars.length + this.pagePosition * this.chars.length);
-	}
-
-	get modalSettings(): OpenBookmarksCallerSettings {
-		return this.settings.openBookmarksCaller;
-	}
-
-	constructor(app: App, settings: Settings, bookmarksPlugin: BookmarksPluginInstance) {
+	constructor(app: App, private _settings: Settings, private _bookmarksPlugin: BookmarksPluginInstance) {
 		super(app);
-		this.settings = settings;
-		this.chars = [...this.modalSettings.characters];
-		this.currentLayerItems = bookmarksPlugin.items;
-		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
 
-		this.corePlugins.bookmarks = bookmarksPlugin;
-		this.corePlugins.fileExplorer = getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance;
-		this.corePlugins.globalSearch = getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance;
-		this.corePlugins.graph = getEnabledPluginById(this.app, 'graph') as GraphPluginInstance;
+		this._chars = [...this.modalSettings.characters];
+		this._currentLayerItems = this._bookmarksPlugin.items;
+		this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
+
+		this._corePlugins = {
+			bookmarks: this._bookmarksPlugin,
+			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
+			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
+			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
+		};
 	}
 
 	onOpen(): void {
 		this.modalEl.addClasses(['bookmarks-caller-modal', 'bc-modal']);
 
 		this.generateHeader(this.contentEl);
-		this.buttonsViewEl = this.contentEl.createDiv('bc-buttons-view');
-		this.generateContent(this.buttonsViewEl);
+		this._buttonsViewEl = this.contentEl.createDiv('bc-buttons-view');
+		this.generateContent(this._buttonsViewEl);
 		this.generateFooter(this.contentEl);
 
-		this.eventListenerFunc = this.handlingKeyupEvent.bind(this);
-		window.addEventListener('keyup', this.eventListenerFunc);
+		this._eventListenerFunc = this.handlingKeyupEvent.bind(this);
+		window.addEventListener('keyup', this._eventListenerFunc);
 	}
 
 	onClose(): void {
-		window.removeEventListener('keyup', this.eventListenerFunc);
+		window.removeEventListener('keyup', this._eventListenerFunc);
 		this.contentEl.empty();
 	}
 
 	private generateHeader(contentEl: HTMLElement): void {
 		contentEl.createDiv('bc-header', el => {
-			this.headerTextEl = el.createSpan('');
+			this._headerTextEl = el.createSpan('');
 			this.updateHeaderText();
 		});
 	}
 
 	private generateContent(contentEl: HTMLElement, pagePosition = 0, focusPosition = 0): void {
 		contentEl.empty();
-		this.focusPosition = focusPosition;
-		this.pagePosition = pagePosition;
+		this._focusPosition = focusPosition;
+		this._pagePosition = pagePosition;
 
 		if (this.viewItems.length) {
 			this.generateButtons(contentEl);
 			this.generateDummyButtons(contentEl);
-			(this.buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
+			(this._buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
 			this.updateHeaderText();
 		} else {
 			contentEl.createSpan().setText('No items found in this group.');
@@ -138,7 +130,7 @@ export class BookmarksCallerModal extends Modal {
 	private generateButtons(contentEl: HTMLElement): void {
 		this.viewItems.forEach((item, idx) => {
 			contentEl.createDiv('bc-leaf-row', el => {
-				const shortcutBtnEl = el.createEl('button', { text: this.chars.at(idx) });
+				const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
 				shortcutBtnEl.setAttr('tabIndex', -1);
 				shortcutBtnEl.addClass('bc-shortcut-btn');
 				shortcutBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
@@ -151,13 +143,13 @@ export class BookmarksCallerModal extends Modal {
 				const name = getDisplayName(this.app, item);
 				itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
 
-				this.buttonMap.set(getButtonId(item), itemBtnEl);
+				this._buttonMap.set(getButtonId(item), itemBtnEl);
 			});
 		});
 	}
 
 	private generateDummyButtons(contentEl: HTMLElement): void {
-		const dummyButtonCount = this.chars.length - this.viewItems.length;
+		const dummyButtonCount = this._chars.length - this.viewItems.length;
 		for (let i = 0; i < dummyButtonCount; i++) {			
 			contentEl.createDiv('bc-leaf-row bc-leaf-row-invisible', el => {
 				const itemBtnEl = el.createEl('button');
@@ -171,11 +163,11 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private generateFooter(contentEl: HTMLElement): void {
-		this.footerEl?.empty();
+		this._footerEl?.empty();
 		if (!this.viewItems.length) { 
 			return;
 		}
-		this.footerEl = contentEl.createDiv('bc-footer', el => {
+		this._footerEl = contentEl.createDiv('bc-footer', el => {
 			if (this.modalSettings.showFooterButtons) {
 				el.createDiv('bc-page-nav', navEl => {
 					const backBtnEl = navEl.createEl('button');
@@ -185,7 +177,7 @@ export class BookmarksCallerModal extends Modal {
 					backBtnEl.addClass('bc-nav-btn');
 					backBtnEl.addEventListener('click', () => this.backToParentLayer());
 
-					if (this.currentLayerItems.length > this.chars.length) {
+					if (this._currentLayerItems.length > this._chars.length) {
 						const prevBtnEl = navEl.createEl('button', { text: '←' });
 						prevBtnEl.setAttr('tabIndex', -1);
 						prevBtnEl.addClass('bc-nav-btn');
@@ -202,7 +194,7 @@ export class BookmarksCallerModal extends Modal {
 					openBtnEl.createSpan('').setText('All');
 					openBtnEl.setAttr('tabIndex', -1);
 					openBtnEl.addClass('bc-nav-btn');
-					openBtnEl.addEventListener('click', () => this.openAllFiles(this.currentLayerItems));
+					openBtnEl.addEventListener('click', () => this.openAllFiles(this._currentLayerItems));
 				});
 			}
 
@@ -217,7 +209,7 @@ export class BookmarksCallerModal extends Modal {
 							keys = this.modalSettings.backBtn;
 						}
 						if (keys === 'chars') {
-							keys = `${this.chars.slice(0, 2).join(' | ')} | ... | ${this.chars.slice(-2).join(' | ')}`;
+							keys = `${this._chars.slice(0, 2).join(' | ')} | ... | ${this._chars.slice(-2).join(' | ')}`;
 						}
 						el.createSpan('bc-keys').setText(keys);
 						el.createSpan('bc-description').setText(item.description);
@@ -228,8 +220,8 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private updateHeaderText(): void {
-		const path = this.groups.length === 1 ? `${this.groups.at(0)}/` : `.../${this.groups.at(-1)}/`;
-		this.headerTextEl.setText(path);
+		const path = this._groups.length === 1 ? `${this._groups.at(0)}/` : `.../${this._groups.at(-1)}/`;
+		this._headerTextEl.setText(path);
 	}
 
 	private async clickItemButton(bookmark: BookmarkItem, idx: number): Promise<void> {
@@ -244,17 +236,17 @@ export class BookmarksCallerModal extends Modal {
 				break;
 			}
 			case 'folder': {
-				openBookmarkOfFolder(this.app, bookmark, this.corePlugins.fileExplorer);
+				openBookmarkOfFolder(this.app, bookmark, this._corePlugins.fileExplorer);
 				this.close();
 				break;
 			}
 			case 'search': {
-				openBookmarkOfSearch(bookmark, this.corePlugins.globalSearch);
+				openBookmarkOfSearch(bookmark, this._corePlugins.globalSearch);
 				this.close();
 				break;
 			}
 			case 'graph': {
-				await openBookmarkOfGraph(this.app, bookmark, this.corePlugins.bookmarks, this.corePlugins.graph);
+				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
 				this.close();
 				break;
 			}
@@ -265,19 +257,19 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private openBookmarkOfGroup(bookmark: BookmarkItem, idx: number): void {
-		const history = this.histories.at(-1) as History;
-		history.pagePosition = this.pagePosition;
+		const history = this._histories.at(-1) as History;
+		history.pagePosition = this._pagePosition;
 		history.focusPosition = idx;
 
-		this.currentLayerItems = bookmark.items || [];
-		this.groups.push(`${bookmark.title}`);
-		this.histories.push({ items: this.currentLayerItems, pagePosition: 0, focusPosition: 0 });
-		this.generateContent(this.buttonsViewEl);
+		this._currentLayerItems = bookmark.items || [];
+		this._groups.push(`${bookmark.title}`);
+		this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
+		this.generateContent(this._buttonsViewEl);
 		this.generateFooter(this.contentEl);
 	}
 
 	private handlingKeyupEvent(ev: KeyboardEvent): void {
-		if (this.chars.includes(ev.key)) {
+		if (this._chars.includes(ev.key)) {
 			this.keyupShortcutKeys(ev.key);
 			ev.preventDefault();
 			return;
@@ -296,63 +288,63 @@ export class BookmarksCallerModal extends Modal {
 		}
 
 		if (ev.key === this.modalSettings.allBtn) {
-			this.openAllFiles(this.currentLayerItems);
+			this.openAllFiles(this._currentLayerItems);
 			ev.preventDefault();
 			return;
 		}
 	}
 
 	private keyupShortcutKeys(key: string): void {
-		const idx = this.chars.indexOf(key);
+		const idx = this._chars.indexOf(key);
 		const item = this.viewItems.at(idx);
-		this.buttonMap.get(getButtonId(item))?.click();
+		this._buttonMap.get(getButtonId(item))?.click();
 	}
 
 	private keyupArrowKeys(key: string): void {
 		switch (key) {
 			case UP_KEY:
-				if (this.focusPosition === 0) {
-					(this.buttonMap.get(getButtonId(this.viewItems.at(-1))) as HTMLElement).focus();
-					this.focusPosition = this.viewItems.length - 1;
+				if (this._focusPosition === 0) {
+					(this._buttonMap.get(getButtonId(this.viewItems.at(-1))) as HTMLElement).focus();
+					this._focusPosition = this.viewItems.length - 1;
 				} else {
-					(this.buttonMap.get(getButtonId(this.viewItems[this.focusPosition - 1])) as HTMLElement).focus();
-					this.focusPosition -= 1;
+					(this._buttonMap.get(getButtonId(this.viewItems[this._focusPosition - 1])) as HTMLElement).focus();
+					this._focusPosition -= 1;
 				}
 				break;
 			case DOWN_KEY:
-				if (this.focusPosition === this.viewItems.length - 1) {
-					(this.buttonMap.get(getButtonId(this.viewItems.at(0))) as HTMLElement).focus();
-					this.focusPosition = 0;
+				if (this._focusPosition === this.viewItems.length - 1) {
+					(this._buttonMap.get(getButtonId(this.viewItems.at(0))) as HTMLElement).focus();
+					this._focusPosition = 0;
 				} else {
-					(this.buttonMap.get(getButtonId(this.viewItems[this.focusPosition + 1])) as HTMLElement).focus();
-					this.focusPosition += 1;
+					(this._buttonMap.get(getButtonId(this.viewItems[this._focusPosition + 1])) as HTMLElement).focus();
+					this._focusPosition += 1;
 				}
 				break;
 			case LEFT_KEY: {
-				const pageSize = this.currentLayerItems.length / this.chars.length;
+				const pageSize = this._currentLayerItems.length / this._chars.length;
 				if (Math.ceil(pageSize) === 1) {
 					break;
 				}
-				if (this.pagePosition === 0) {
-					this.pagePosition = this.currentLayerItems.length % this.chars.length === 0 ? Math.floor(pageSize) - 1 : Math.floor(pageSize);
+				if (this._pagePosition === 0) {
+					this._pagePosition = this._currentLayerItems.length % this._chars.length === 0 ? Math.floor(pageSize) - 1 : Math.floor(pageSize);
 				} else {
-					this.pagePosition -= 1;
+					this._pagePosition -= 1;
 				}
-				this.generateContent(this.buttonsViewEl, this.pagePosition);
+				this.generateContent(this._buttonsViewEl, this._pagePosition);
 				break;
 			}
 			case RIGHT_KEY: {
-				const pageSize = this.currentLayerItems.length / this.chars.length;
+				const pageSize = this._currentLayerItems.length / this._chars.length;
 				if (Math.ceil(pageSize) === 1) {
 					break;
 				}
-				const lastPage = this.currentLayerItems.length % this.chars.length === 0 ? (pageSize) - 1 : Math.floor(pageSize);
-				if (this.pagePosition === lastPage) {
-					this.pagePosition = 0;
+				const lastPage = this._currentLayerItems.length % this._chars.length === 0 ? (pageSize) - 1 : Math.floor(pageSize);
+				if (this._pagePosition === lastPage) {
+					this._pagePosition = 0;
 				} else {
-					this.pagePosition += 1;
+					this._pagePosition += 1;
 				}
-				this.generateContent(this.buttonsViewEl, this.pagePosition);
+				this.generateContent(this._buttonsViewEl, this._pagePosition);
 				break;
 			}
 			default:
@@ -362,13 +354,13 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private backToParentLayer(): void {
-		if (this.histories.length > 1) {
-			this.groups.pop();
-			this.histories.pop();
+		if (this._histories.length > 1) {
+			this._groups.pop();
+			this._histories.pop();
 
-			const { items, pagePosition, focusPosition} = this.histories.at(-1) as History;
-			this.currentLayerItems = items;
-			this.generateContent(this.buttonsViewEl, pagePosition, focusPosition);
+			const { items, pagePosition, focusPosition} = this._histories.at(-1) as History;
+			this._currentLayerItems = items;
+			this.generateContent(this._buttonsViewEl, pagePosition, focusPosition);
 			this.generateFooter(this.contentEl);
 		}
 	}
