@@ -82,6 +82,13 @@
 				opacity: 0.5;
 			}
 
+			& .bc-favicon {
+				width: 16px;
+				height: 16px;
+				background-size: cover;
+				background-position: center;
+			}
+
 			& .bc-leaf-name {
 				overflow: hidden;
 				text-overflow: ellipsis;
@@ -170,6 +177,14 @@
 	& .suggestion-item {
 		display: grid;
 		grid-template-columns: 1.5rem 1fr;
+		align-items: center;
+
+		& .bs-favicon {
+			width: 16px;
+			height: 16px;
+			background-size: cover;
+			background-position: center;
+		}
 
 		& span {
 			word-break: break-all;

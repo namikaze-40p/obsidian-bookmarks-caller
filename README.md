@@ -21,6 +21,7 @@ Before using this plugin, please do the following:
 >   - Bookmark a graph
 >   - Bookmark a heading
 >   - Bookmark a block
+>   - Bookmark a url (Only Desktop App)
 
 ## How to use
 
