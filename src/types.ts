@@ -11,6 +11,7 @@ export type CorePlugins = {
 	fileExplorer: FileExplorerPluginInstance | undefined,
 	globalSearch: GlobalSearchPluginInstance | undefined,
 	graph: GraphPluginInstance | undefined,
+	webViewer?: WebViewerPluginInstance | undefined,
 };
 
 export type PluginInstance = BookmarksPluginInstance | FileExplorerPluginInstance | GlobalSearchPluginInstance | GraphPluginInstance;
@@ -37,9 +38,19 @@ export type GlobalSearchPluginInstance = BasicPluginParams & {
 	openGlobalSearch: (query: string) => void,
 };
 
+export type WebViewerPluginInstance = BasicPluginParams & {
+	openUrl: (url: string, newLeaf: boolean) => void,
+	options: {
+		openExternalURLs: boolean,
+	},
+	db: {
+		loadIcon: (domain: string, sourceUrl: string) => Promise<string>,
+	}
+};
+
 export type GraphPluginInstance = BasicPluginParams;
 
-export type BookmarkType = 'group' | 'folder' | 'file' | 'graph' | 'search';
+export type BookmarkType = 'group' | 'folder' | 'file' | 'graph' | 'search' | 'url';
 
 export type BookmarkItem = {
 	ctime: number;
@@ -49,4 +60,5 @@ export type BookmarkItem = {
 	path?: string;
 	subpath?: string;
 	query?: string;
+	url?: string;
 }

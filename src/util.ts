@@ -1,4 +1,4 @@
-import { App, TFile, TFolder } from 'obsidian';
+import { App, TFile, TFolder, setIcon } from 'obsidian';
 import {
 	BookmarkItem,
 	BookmarksPluginInstance,
@@ -7,6 +7,7 @@ import {
 	GlobalSearchPluginInstance,
 	GraphPluginInstance,
 	PluginInstance,
+	WebViewerPluginInstance,
 } from './types';
 
 const VIEW_TYPE_EMPTY = 'empty'
@@ -16,24 +17,34 @@ export const getEnabledPluginById = (app: App, pluginId: string): PluginInstance
 	return (app as CustomApp)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
 };
 
-export const getTypeIcon = (bookmark: BookmarkItem): string => {
+export const setBookmarkIcon = async (el: HTMLElement, bookmark: BookmarkItem, webViewerPlugin?: WebViewerPluginInstance): Promise<void> => {
 	switch (bookmark.type) {
 		case 'group':
-			return 'chevron-right';
+			return setIcon(el, 'chevron-right');
 		case 'folder':
-			return 'folder-closed';
+			return setIcon(el, 'folder-closed');
 		case 'file':
 			if (bookmark.subpath) {
-				return bookmark.subpath.slice(0, 2) === '#^' ? 'toy-brick' : 'heading';
+				return setIcon(el, bookmark.subpath.slice(0, 2) === '#^' ? 'toy-brick' : 'heading');
 			} else {
-				return 'file';
+				return setIcon(el, 'file');
 			}
 		case 'search':
-			return 'search';
+			return setIcon(el, 'search');
 		case 'graph':
-			return 'git-fork';
+			return setIcon(el, 'git-fork');
+		case 'url':
+			if (webViewerPlugin?.db) {
+				const domain = new URL(bookmark.url || '').hostname;
+				const icon = await webViewerPlugin.db.loadIcon(domain, bookmark.url || '');
+				if (icon) {
+					el.createDiv('bc-favicon bs-favicon', iconEl => iconEl.style.backgroundImage = `url(${icon})`);
+					return;
+				}
+			}
+			return setIcon(el, 'globe-2');
 		default:
-			return '';
+			return;
 	}
 }
 
@@ -84,6 +95,17 @@ export const openBookmarkOfGraph = async (app: App, bookmark: BookmarkItem, book
 	}
 }
 
+export const openBookmarkOfUrl = (bookmark: BookmarkItem, webViewerPlugin?: WebViewerPluginInstance): void => {
+	if (!bookmark.url) {
+		return;
+	}
+	if (webViewerPlugin && webViewerPlugin.options?.openExternalURLs) {
+		webViewerPlugin.openUrl(bookmark.url, true);
+	} else {
+		window.open(bookmark.url, '_blank');
+	}
+}
+
 export const openChildFiles = async (app: App, items: BookmarkItem[], isRecursivelyOpen: boolean): Promise<void> => {
 	const bookmarks = isRecursivelyOpen ? items : items.filter(item => item.type === 'file');
 	for (const bookmark of bookmarks) {
@@ -98,6 +120,9 @@ export const openChildFiles = async (app: App, items: BookmarkItem[], isRecursiv
 				}
 				break;
 			}
+			case 'url':
+				openBookmarkOfUrl(bookmark, getEnabledPluginById(app, 'webviewer') as WebViewerPluginInstance);
+				break;
 			// Not supported
 			case 'folder':
 			case 'search':

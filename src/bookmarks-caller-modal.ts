@@ -1,22 +1,24 @@
 import { App, Modal, setIcon } from 'obsidian';
 import { OpenBookmarksCallerSettings, Settings } from './settings';
 import {
-	BookmarksPluginInstance,
 	BookmarkItem,
+	BookmarksPluginInstance,
+	CorePlugins,
 	FileExplorerPluginInstance,
 	GlobalSearchPluginInstance,
 	GraphPluginInstance,
-	CorePlugins,
+	WebViewerPluginInstance,
 } from './types';
 import {
 	getDisplayName,
 	getEnabledPluginById,
-	getTypeIcon,
 	openBookmarkOfFile,
 	openBookmarkOfFolder,
 	openBookmarkOfGraph,
 	openBookmarkOfSearch,
+	openBookmarkOfUrl,
 	openChildFiles,
+	setBookmarkIcon
 } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
@@ -52,6 +54,7 @@ export class BookmarksCallerModal extends Modal {
 		fileExplorer: void 0,
 		globalSearch: void 0,
 		graph: void 0,
+		webViewer: void 0,
 	};
 	private _chars: string[] = [];
 	private _currentLayerItems: BookmarkItem[] = [];
@@ -85,6 +88,7 @@ export class BookmarksCallerModal extends Modal {
 			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
 			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
 			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
+			webViewer: getEnabledPluginById(this.app, 'webviewer') as WebViewerPluginInstance,
 		};
 	}
 
@@ -112,13 +116,13 @@ export class BookmarksCallerModal extends Modal {
 		});
 	}
 
-	private generateContent(contentEl: HTMLElement, pagePosition = 0, focusPosition = 0): void {
+	private async generateContent(contentEl: HTMLElement, pagePosition = 0, focusPosition = 0): Promise<void> {
 		contentEl.empty();
 		this._focusPosition = focusPosition;
 		this._pagePosition = pagePosition;
 
 		if (this.viewItems.length) {
-			this.generateButtons(contentEl);
+			await this.generateButtons(contentEl);
 			this.generateDummyButtons(contentEl);
 			(this._buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
 			this.updateHeaderText();
@@ -127,25 +131,24 @@ export class BookmarksCallerModal extends Modal {
 		}
 	}
 
-	private generateButtons(contentEl: HTMLElement): void {
-		this.viewItems.forEach((item, idx) => {
-			contentEl.createDiv('bc-leaf-row', el => {
-				const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
-				shortcutBtnEl.setAttr('tabIndex', -1);
-				shortcutBtnEl.addClass('bc-shortcut-btn');
-				shortcutBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
+	private async generateButtons(contentEl: HTMLElement): Promise<void> {
+		for (const [idx, item] of this.viewItems.entries()) {
+			const el = contentEl.createDiv('bc-leaf-row');
+			const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
+			shortcutBtnEl.setAttr('tabIndex', -1);
+			shortcutBtnEl.addClass('bc-shortcut-btn');
+			shortcutBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
 
-				const itemBtnEl = el.createEl('button');
-				itemBtnEl.addClass('bc-leaf-name-btn');
-				itemBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
-				setIcon(itemBtnEl, getTypeIcon(item));
+			const itemBtnEl = el.createEl('button');
+			itemBtnEl.addClass('bc-leaf-name-btn');
+			itemBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
+			await setBookmarkIcon(itemBtnEl, item, this._corePlugins.webViewer);
 
-				const name = getDisplayName(this.app, item);
-				itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
+			const name = getDisplayName(this.app, item);
+			itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
 
-				this._buttonMap.set(getButtonId(item), itemBtnEl);
-			});
-		});
+			this._buttonMap.set(getButtonId(item), itemBtnEl);
+		}
 	}
 
 	private generateDummyButtons(contentEl: HTMLElement): void {
@@ -247,6 +250,11 @@ export class BookmarksCallerModal extends Modal {
 			}
 			case 'graph': {
 				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
+				this.close();
+				break;
+			}
+			case 'url': {
+				openBookmarkOfUrl(bookmark, this._corePlugins.webViewer);
 				this.close();
 				break;
 			}

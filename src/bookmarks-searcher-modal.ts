@@ -7,15 +7,17 @@ import {
 	FileExplorerPluginInstance,
 	GlobalSearchPluginInstance,
 	GraphPluginInstance,
+	WebViewerPluginInstance,
 } from './types';
 import { getDisplayName,
 	getEnabledPluginById,
-	getTypeIcon,
 	openBookmarkOfFile,
 	openBookmarkOfFolder,
-	openBookmarkOfGraph,
 	openBookmarkOfSearch,
+	openBookmarkOfGraph,
+	openBookmarkOfUrl,
 	openChildFiles,
+	setBookmarkIcon,
 } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
@@ -46,6 +48,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		fileExplorer: void 0,
 		globalSearch: void 0,
 		graph: void 0,
+		webViewer: void 0,
 	};
 	private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
@@ -67,6 +70,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
 			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
 			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
+			webViewer: getEnabledPluginById(this.app, 'webviewer') as WebViewerPluginInstance,
 		};
 
 		this.setPlaceholder('Search bookmarks');
@@ -150,15 +154,20 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
 				break;
 			}
+			case 'url': {
+				openBookmarkOfUrl(bookmark, this._corePlugins.webViewer);
+				this.close();
+				break;
+			}
 			default:
 				// nop
 				break;
 		}
 	}
 
-	renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): HTMLElement {
+	async renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): Promise<HTMLElement> {
 		const bookmark = item.item;
-		setIcon(suggestionItemEl, getTypeIcon(bookmark));
+		await setBookmarkIcon(suggestionItemEl, bookmark, this._corePlugins.webViewer);
 		suggestionItemEl.createSpan('', spanEl => spanEl.setText(getDisplayName(this.app, bookmark)));
 		return suggestionItemEl;
 	}
