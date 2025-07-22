@@ -17,7 +17,7 @@ export const getEnabledPluginById = (app: App, pluginId: string): PluginInstance
 	return (app as CustomApp)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
 };
 
-export const setBookmarkIcon = async (el: HTMLElement, bookmark: BookmarkItem, webViewerPlugin?: WebViewerPluginInstance): Promise<void> => {
+export const setBookmarkIcon = async (app: App, el: HTMLElement, bookmark: BookmarkItem): Promise<void> => {
 	switch (bookmark.type) {
 		case 'group':
 			return setIcon(el, 'chevron-right');
@@ -33,7 +33,8 @@ export const setBookmarkIcon = async (el: HTMLElement, bookmark: BookmarkItem, w
 			return setIcon(el, 'search');
 		case 'graph':
 			return setIcon(el, 'git-fork');
-		case 'url':
+		case 'url': {
+			const webViewerPlugin = getEnabledPluginById(app, 'webviewer') as WebViewerPluginInstance;
 			if (webViewerPlugin?.db) {
 				const domain = new URL(bookmark.url || '').hostname;
 				const icon = await webViewerPlugin.db.loadIcon(domain, bookmark.url || '');
@@ -43,6 +44,7 @@ export const setBookmarkIcon = async (el: HTMLElement, bookmark: BookmarkItem, w
 				}
 			}
 			return setIcon(el, 'globe-2');
+		}
 		default:
 			return;
 	}
@@ -63,42 +65,71 @@ export const getDisplayName = (app: App, bookmark: BookmarkItem): string => {
 			return bookmark.query ?? '';
 		case 'group':
 		case 'graph':
+		case 'url':
 		default:
 			return '';
 	}
 }
 
-export const openBookmarkOfFile = (app: App, bookmark: BookmarkItem): void => {
-	const file = app.vault.getAbstractFileByPath(bookmark.path || '');
-	if (file instanceof TFile) {
-		app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+export const openBookmark = async (app: App, bookmark: BookmarkItem): Promise<void> => {
+	switch (bookmark.type) {
+		case 'file': {
+			return await openBookmarkOfFile(app, bookmark);
+		}
+		case 'folder': {
+			return openBookmarkOfFolder(app, bookmark);
+		}
+		case 'search': {
+			return openBookmarkOfSearch(app, bookmark);
+		}
+		case 'graph': {
+			return await openBookmarkOfGraph(app, bookmark);
+		}
+		case 'url': {
+			return openBookmarkOfUrl(app, bookmark);
+		}
+		default:
+			// nop
+			return;
 	}
 }
 
-export const openBookmarkOfFolder = (app: App, bookmark: BookmarkItem, fileExplorerPlugin?: FileExplorerPluginInstance): void => {
+const openBookmarkOfFile = async (app: App, bookmark: BookmarkItem): Promise<void> => {
+	const file = app.vault.getAbstractFileByPath(bookmark.path || '');
+	if (file instanceof TFile) {
+		await app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
+	}
+}
+
+const openBookmarkOfFolder = (app: App, bookmark: BookmarkItem): void => {
+	const fileExplorerPlugin = getEnabledPluginById(app, 'file-explorer') as FileExplorerPluginInstance;
 	const folder = app.vault.getAbstractFileByPath(bookmark.path ?? '');
 	if (folder instanceof TFolder && fileExplorerPlugin) {
 		fileExplorerPlugin.revealInFolder(folder);
 	}
 }
 
-export const openBookmarkOfSearch = (bookmark: BookmarkItem, globalSearchPlugin?: GlobalSearchPluginInstance): void => {
+const openBookmarkOfSearch = (app: App, bookmark: BookmarkItem): void => {
+	const globalSearchPlugin = getEnabledPluginById(app, 'global-search') as GlobalSearchPluginInstance;
 	if (globalSearchPlugin) {
 		globalSearchPlugin.openGlobalSearch(bookmark.query ?? '');
 	}
 }
 
-export const openBookmarkOfGraph = async (app: App, bookmark: BookmarkItem, bookmarksPlugin?: BookmarksPluginInstance, graphPlugin?: GraphPluginInstance): Promise<void> => {
-	if (graphPlugin && bookmarksPlugin) {	
+const openBookmarkOfGraph = async (app: App, bookmark: BookmarkItem): Promise<void> => {
+	const bookmarksPlugin = getEnabledPluginById(app, 'bookmarks') as BookmarksPluginInstance;
+	const graphPlugin = getEnabledPluginById(app, 'graph') as GraphPluginInstance;
+	if (bookmarksPlugin && graphPlugin) {	
 		await app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_EMPTY, active: true });
 		await bookmarksPlugin.openBookmark(bookmark, 'tab');
 	}
 }
 
-export const openBookmarkOfUrl = (bookmark: BookmarkItem, webViewerPlugin?: WebViewerPluginInstance): void => {
+const openBookmarkOfUrl = (app: App, bookmark: BookmarkItem): void => {
 	if (!bookmark.url) {
 		return;
 	}
+	const webViewerPlugin = getEnabledPluginById(app, 'webviewer') as WebViewerPluginInstance;
 	if (webViewerPlugin && webViewerPlugin.options?.openExternalURLs) {
 		webViewerPlugin.openUrl(bookmark.url, true);
 	} else {
@@ -114,14 +145,11 @@ export const openChildFiles = async (app: App, items: BookmarkItem[], isRecursiv
 				await openChildFiles(app, bookmark.items || [], isRecursivelyOpen);
 				break;
 			case 'file': {
-				const file = app.vault.getAbstractFileByPath(bookmark.path || '');
-				if (file instanceof TFile) {
-					await app.workspace.getLeaf(true).openFile(file, { eState: { subpath: bookmark.subpath } });
-				}
+				await openBookmarkOfFile(app, bookmark);
 				break;
 			}
 			case 'url':
-				openBookmarkOfUrl(bookmark, getEnabledPluginById(app, 'webviewer') as WebViewerPluginInstance);
+				openBookmarkOfUrl(app, bookmark);
 				break;
 			// Not supported
 			case 'folder':

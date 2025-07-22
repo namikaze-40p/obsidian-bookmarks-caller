@@ -1,24 +1,7 @@
 import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
 import { SORT_ORDER, STRUCTURE_TYPE, SearchBookmarksSettings, Settings } from './settings';
-import {
-	BookmarkItem,
-	BookmarksPluginInstance,
-	CorePlugins,
-	FileExplorerPluginInstance,
-	GlobalSearchPluginInstance,
-	GraphPluginInstance,
-	WebViewerPluginInstance,
-} from './types';
-import { getDisplayName,
-	getEnabledPluginById,
-	openBookmarkOfFile,
-	openBookmarkOfFolder,
-	openBookmarkOfSearch,
-	openBookmarkOfGraph,
-	openBookmarkOfUrl,
-	openChildFiles,
-	setBookmarkIcon,
-} from './util';
+import { BookmarkItem, BookmarksPluginInstance } from './types';
+import { getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const SHORTCUT_KEY = {
@@ -43,13 +26,6 @@ const compareCreationTime = (isNewer: boolean) => (a: BookmarkItem, b: BookmarkI
 
 export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	private _currentLayerItems: BookmarkItem[] = [];
-	private _corePlugins: CorePlugins = {
-		bookmarks: void 0,
-		fileExplorer: void 0,
-		globalSearch: void 0,
-		graph: void 0,
-		webViewer: void 0,
-	};
 	private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
 	private get modalSettings(): SearchBookmarksSettings {
@@ -64,14 +40,6 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		const sort = this.modalSettings.sortOrder;
 		this._bookmarks = sort === SORT_ORDER.original ? items : items.sort(compareCreationTime(sort === SORT_ORDER.newer));
 		this._currentLayerItems = this._bookmarks;
-
-		this._corePlugins = {
-			bookmarks: this._bookmarksPlugin,
-			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
-			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
-			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
-			webViewer: getEnabledPluginById(this.app, 'webviewer') as WebViewerPluginInstance,
-		};
 
 		this.setPlaceholder('Search bookmarks');
 
@@ -133,50 +101,25 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 	}
   
 	async onChooseItem(bookmark: BookmarkItem): Promise<void> {
-		switch (bookmark.type) {
-			case 'group': {
-				this.openBookmarkOfGroup(bookmark);
-				break;
-			}
-			case 'file': {
-				openBookmarkOfFile(this.app, bookmark);
-				break;
-			}
-			case 'folder': {
-				openBookmarkOfFolder(this.app, bookmark, this._corePlugins.fileExplorer);
-				break;
-			}
-			case 'search': {
-				openBookmarkOfSearch(bookmark, this._corePlugins.globalSearch);
-				break;
-			}
-			case 'graph': {
-				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
-				break;
-			}
-			case 'url': {
-				openBookmarkOfUrl(bookmark, this._corePlugins.webViewer);
-				this.close();
-				break;
-			}
-			default:
-				// nop
-				break;
+		if (bookmark.type === 'group') {
+			this.openBookmarkOfGroup(bookmark);
+		} else {
+			openBookmark(this.app, bookmark).then(() => this.close());
 		}
 	}
 
 	async renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): Promise<HTMLElement> {
 		const bookmark = item.item;
-		await setBookmarkIcon(suggestionItemEl, bookmark, this._corePlugins.webViewer);
+		await setBookmarkIcon(this.app, suggestionItemEl, bookmark);
 		suggestionItemEl.createSpan('', spanEl => spanEl.setText(getDisplayName(this.app, bookmark)));
 		return suggestionItemEl;
 	}
 
 	private openBookmarkOfGroup(bookmark: BookmarkItem): void {
-		if (this._corePlugins.bookmarks) {
+		if (this._bookmarksPlugin) {
 			const bookmarks = bookmark.items || [];
 			const upperLayers = [...this._upperLayers, bookmarks];
-			new BookmarksSearcherModal(this.app, this._settings, this._corePlugins.bookmarks, bookmarks, upperLayers).open();
+			new BookmarksSearcherModal(this.app, this._settings, this._bookmarksPlugin, bookmarks, upperLayers).open();
 		}
 	}
 
@@ -209,10 +152,10 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 		if (this._upperLayers.length <= 1) {
 			return;
 		}
-		if (this._corePlugins.bookmarks) {
+		if (this._bookmarksPlugin) {
 			this._upperLayers.pop();
 			const bookmarks = this._upperLayers.at(-1) || [];
-			new BookmarksSearcherModal(this.app, this._settings, this._corePlugins.bookmarks, bookmarks, this._upperLayers).open();
+			new BookmarksSearcherModal(this.app, this._settings, this._bookmarksPlugin, bookmarks, this._upperLayers).open();
 			this.close();
 		}
 	}

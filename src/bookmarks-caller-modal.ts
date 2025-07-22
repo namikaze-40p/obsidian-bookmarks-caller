@@ -1,25 +1,7 @@
 import { App, Modal, setIcon } from 'obsidian';
 import { OpenBookmarksCallerSettings, Settings } from './settings';
-import {
-	BookmarkItem,
-	BookmarksPluginInstance,
-	CorePlugins,
-	FileExplorerPluginInstance,
-	GlobalSearchPluginInstance,
-	GraphPluginInstance,
-	WebViewerPluginInstance,
-} from './types';
-import {
-	getDisplayName,
-	getEnabledPluginById,
-	openBookmarkOfFile,
-	openBookmarkOfFolder,
-	openBookmarkOfGraph,
-	openBookmarkOfSearch,
-	openBookmarkOfUrl,
-	openChildFiles,
-	setBookmarkIcon
-} from './util';
+import { BookmarkItem, BookmarksPluginInstance } from './types';
+import { getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const UP_KEY = 'ArrowUp';
@@ -34,6 +16,7 @@ const FOOTER_ITEMS = [
 	{ keys: 'chars', description: 'Quickly open item' },
 	{ keys: 'all', description: 'Open all files in current group' },
 ];
+
 const getButtonId = (bookmark?: BookmarkItem): string => {
 	if (!bookmark) {
 		return '';
@@ -42,6 +25,16 @@ const getButtonId = (bookmark?: BookmarkItem): string => {
 	return `${idPrefix}_${bookmark.ctime}`;
 };
 
+const setupEl = (el: HTMLElement, attr: [string, string | number | boolean] | [], cls: string, callback?: () => void): void => {
+	if (attr.length) {
+		el.setAttr(...attr);
+	}
+	el.addClass(cls);
+	if (callback) {
+		el.addEventListener('click', callback);
+	}
+}
+
 type History = {
 	items: BookmarkItem[];
 	pagePosition: number;
@@ -49,13 +42,6 @@ type History = {
 }
 
 export class BookmarksCallerModal extends Modal {
-	private _corePlugins: CorePlugins = {
-		bookmarks: void 0,
-		fileExplorer: void 0,
-		globalSearch: void 0,
-		graph: void 0,
-		webViewer: void 0,
-	};
 	private _chars: string[] = [];
 	private _currentLayerItems: BookmarkItem[] = [];
 	private _histories: History[] = [];
@@ -82,14 +68,6 @@ export class BookmarksCallerModal extends Modal {
 		this._chars = [...this.modalSettings.characters];
 		this._currentLayerItems = this._bookmarksPlugin.items;
 		this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
-
-		this._corePlugins = {
-			bookmarks: this._bookmarksPlugin,
-			fileExplorer: getEnabledPluginById(this.app, 'file-explorer') as FileExplorerPluginInstance,
-			globalSearch: getEnabledPluginById(this.app, 'global-search') as GlobalSearchPluginInstance,
-			graph: getEnabledPluginById(this.app, 'graph') as GraphPluginInstance,
-			webViewer: getEnabledPluginById(this.app, 'webviewer') as WebViewerPluginInstance,
-		};
 	}
 
 	onOpen(): void {
@@ -135,14 +113,11 @@ export class BookmarksCallerModal extends Modal {
 		for (const [idx, item] of this.viewItems.entries()) {
 			const el = contentEl.createDiv('bc-leaf-row');
 			const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
-			shortcutBtnEl.setAttr('tabIndex', -1);
-			shortcutBtnEl.addClass('bc-shortcut-btn');
-			shortcutBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
+			setupEl(shortcutBtnEl, ['tabIndex', -1], 'bc-shortcut-btn', () => this.clickItemButton(item, idx));
 
 			const itemBtnEl = el.createEl('button');
-			itemBtnEl.addClass('bc-leaf-name-btn');
-			itemBtnEl.addEventListener('click', () => this.clickItemButton(item, idx));
-			await setBookmarkIcon(itemBtnEl, item, this._corePlugins.webViewer);
+			setupEl(itemBtnEl, [], 'bc-leaf-name-btn', () => this.clickItemButton(item, idx));
+			await setBookmarkIcon(this.app, itemBtnEl, item);
 
 			const name = getDisplayName(this.app, item);
 			itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
@@ -156,8 +131,7 @@ export class BookmarksCallerModal extends Modal {
 		for (let i = 0; i < dummyButtonCount; i++) {			
 			contentEl.createDiv('bc-leaf-row bc-leaf-row-invisible', el => {
 				const itemBtnEl = el.createEl('button');
-				itemBtnEl.addClass('bc-leaf-name-btn');
-				itemBtnEl.setAttr('disabled', true);
+				setupEl(itemBtnEl, ['disabled', true], 'bc-leaf-name-btn');
 				
 				const itemNameEl = itemBtnEl.createSpan('bc-leaf-name');
 				itemNameEl.setText('-');
@@ -176,28 +150,20 @@ export class BookmarksCallerModal extends Modal {
 					const backBtnEl = navEl.createEl('button');
 					setIcon(backBtnEl, 'undo-2');
 					backBtnEl.createSpan('').setText('Back');
-					backBtnEl.setAttr('tabIndex', -1);
-					backBtnEl.addClass('bc-nav-btn');
-					backBtnEl.addEventListener('click', () => this.backToParentLayer());
+					setupEl(backBtnEl, ['tabIndex', -1], 'bc-nav-btn', () => this.backToParentLayer());
 
 					if (this._currentLayerItems.length > this._chars.length) {
 						const prevBtnEl = navEl.createEl('button', { text: '←' });
-						prevBtnEl.setAttr('tabIndex', -1);
-						prevBtnEl.addClass('bc-nav-btn');
-						prevBtnEl.addEventListener('click', () => this.keyupArrowKeys(LEFT_KEY));
+						setupEl(prevBtnEl, ['tabIndex', -1], 'bc-nav-btn', () => this.keyupArrowKeys(LEFT_KEY));
 						
 						const nextBtnEl = navEl.createEl('button', { text: '→' });
-						nextBtnEl.setAttr('tabIndex', -1);
-						nextBtnEl.addClass('bc-nav-btn');
-						nextBtnEl.addEventListener('click', () => this.keyupArrowKeys(RIGHT_KEY));
+						setupEl(nextBtnEl, ['tabIndex', -1], 'bc-nav-btn', () => this.keyupArrowKeys(RIGHT_KEY));
 					}
 
 					const openBtnEl = navEl.createEl('button');
 					setIcon(openBtnEl, 'square-stack');
 					openBtnEl.createSpan('').setText('All');
-					openBtnEl.setAttr('tabIndex', -1);
-					openBtnEl.addClass('bc-nav-btn');
-					openBtnEl.addEventListener('click', () => this.openAllFiles(this._currentLayerItems));
+					setupEl(openBtnEl, ['tabIndex', -1], 'bc-nav-btn', () => this.openAllFiles(this._currentLayerItems));
 				});
 			}
 
@@ -228,39 +194,10 @@ export class BookmarksCallerModal extends Modal {
 	}
 
 	private async clickItemButton(bookmark: BookmarkItem, idx: number): Promise<void> {
-		switch (bookmark.type) {
-			case 'group': {
-				this.openBookmarkOfGroup(bookmark, idx);
-				break;
-			}
-			case 'file': {
-				openBookmarkOfFile(this.app, bookmark);
-				this.close();
-				break;
-			}
-			case 'folder': {
-				openBookmarkOfFolder(this.app, bookmark, this._corePlugins.fileExplorer);
-				this.close();
-				break;
-			}
-			case 'search': {
-				openBookmarkOfSearch(bookmark, this._corePlugins.globalSearch);
-				this.close();
-				break;
-			}
-			case 'graph': {
-				await openBookmarkOfGraph(this.app, bookmark, this._corePlugins.bookmarks, this._corePlugins.graph);
-				this.close();
-				break;
-			}
-			case 'url': {
-				openBookmarkOfUrl(bookmark, this._corePlugins.webViewer);
-				this.close();
-				break;
-			}
-			default:
-				// nop
-				break;
+		if (bookmark.type === 'group') {
+			this.openBookmarkOfGroup(bookmark, idx);
+		} else {
+			openBookmark(this.app, bookmark).then(() => this.close());
 		}
 	}
 

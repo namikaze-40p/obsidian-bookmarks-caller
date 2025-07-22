@@ -6,15 +6,7 @@ export type CustomApp = App & {
 	},
 };
 
-export type CorePlugins = {
-	bookmarks: BookmarksPluginInstance | undefined,
-	fileExplorer: FileExplorerPluginInstance | undefined,
-	globalSearch: GlobalSearchPluginInstance | undefined,
-	graph: GraphPluginInstance | undefined,
-	webViewer?: WebViewerPluginInstance | undefined,
-};
-
-export type PluginInstance = BookmarksPluginInstance | FileExplorerPluginInstance | GlobalSearchPluginInstance | GraphPluginInstance;
+export type PluginInstance = BookmarksPluginInstance | FileExplorerPluginInstance | GlobalSearchPluginInstance | GraphPluginInstance | WebViewerPluginInstance;
 
 type BasicPluginParams = {
 	app: App,
@@ -38,6 +30,8 @@ export type GlobalSearchPluginInstance = BasicPluginParams & {
 	openGlobalSearch: (query: string) => void,
 };
 
+export type GraphPluginInstance = BasicPluginParams;
+
 export type WebViewerPluginInstance = BasicPluginParams & {
 	openUrl: (url: string, newLeaf: boolean) => void,
 	options: {
@@ -47,8 +41,6 @@ export type WebViewerPluginInstance = BasicPluginParams & {
 		loadIcon: (domain: string, sourceUrl: string) => Promise<string>,
 	}
 };
-
-export type GraphPluginInstance = BasicPluginParams;
 
 export type BookmarkType = 'group' | 'folder' | 'file' | 'graph' | 'search' | 'url';
 
