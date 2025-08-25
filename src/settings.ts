@@ -78,19 +78,15 @@ const RESERVED_KEYS_MESSAGE = `The key can't be assigned because it's used prefe
 const RESERVED_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'];
 
 export class SettingTab extends PluginSettingTab {
-	plugin: BookmarkCaller;
-	isOpen = {
+	private _isOpen = {
 		firstDetails: false,
 		secondDetails: false,
 	};
-	allBtnText: TextComponent;
-	backBtnText: TextComponent;
-	bsAllBtnText: TextComponent;
-	bsBackBtnText: TextComponent;
+	private _allBtnText: TextComponent;
+	private _backBtnText: TextComponent;
 
-	constructor(app: App, plugin: BookmarkCaller) {
-		super(app, plugin);
-		this.plugin = plugin;
+	constructor(app: App, private _plugin: BookmarkCaller) {
+		super(app, _plugin);
 	}
 
 	display(): void {
@@ -105,10 +101,10 @@ export class SettingTab extends PluginSettingTab {
 					summaryEl.setText('For "Open bookmarks caller" command');
 				});
 			});
-			if (this.isOpen.firstDetails) {
+			if (this._isOpen.firstDetails) {
 				detailsEl.setAttr('open', true);
 			}
-			detailsEl.addEventListener("toggle", () => this.isOpen.firstDetails = detailsEl.open);
+			detailsEl.addEventListener("toggle", () => this._isOpen.firstDetails = detailsEl.open);
 			this.setForOpenBookmarksCallerCommand(detailsEl);
 		}
 
@@ -118,10 +114,10 @@ export class SettingTab extends PluginSettingTab {
 					summaryEl.setText('For "Search bookmarks" command');
 				});
 			});
-			if (this.isOpen.secondDetails) {
+			if (this._isOpen.secondDetails) {
 				detailsEl.setAttr('open', true);
 			}
-			detailsEl.addEventListener("toggle", () => this.isOpen.secondDetails = detailsEl.open);
+			detailsEl.addEventListener("toggle", () => this._isOpen.secondDetails = detailsEl.open);
 			this.setForSearchBookmarksCommand(detailsEl);
 		}
 	}
@@ -132,7 +128,7 @@ export class SettingTab extends PluginSettingTab {
 			return;
 		}
 
-		const { openBookmarksCaller, searchBookmarks } = this.plugin.settings;
+		const { openBookmarksCaller, searchBookmarks } = this._plugin.settings;
 		const { focusColor } = openBookmarksCaller;
 		const { focusColor: sbFocusColor } = searchBookmarks;
 		createStyles([
@@ -143,7 +139,7 @@ export class SettingTab extends PluginSettingTab {
 
 	private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
 		const settingType = SETTING_TYPE.openBookmarksCaller;
-		const settings = this.plugin.settings[settingType];
+		const settings = this._plugin.settings[settingType];
 
 		new Setting(detailsEl)
 			.setName(`Recursively open files under groups`)
@@ -151,7 +147,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.recursivelyOpen)
 				.onChange(async value => {
 					settings.recursivelyOpen = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 
@@ -161,7 +157,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.showFooterButtons)
 				.onChange(async value => {
 					settings.showFooterButtons = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 		
@@ -171,7 +167,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.showLegends)
 				.onChange(async value => {
 					settings.showLegends = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 		
@@ -181,7 +177,7 @@ export class SettingTab extends PluginSettingTab {
 			.addColorPicker(colorPicker => colorPicker.setValue(settings.focusColor)
 				.onChange(async value => {
 					settings.focusColor = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 					this.updateStyleSheet();
 				}),
 			)
@@ -205,7 +201,7 @@ export class SettingTab extends PluginSettingTab {
 							inputEl.removeClass('bc-setting-is-invalid');
 							settings.characters = value;
 							orgCharacters = value;
-							await this.plugin.saveSettings();
+							await this._plugin.saveSettings();
 						} else {
 							inputEl.addClass('bc-setting-is-invalid');
 						}
@@ -238,10 +234,10 @@ export class SettingTab extends PluginSettingTab {
 			.setName('Shortcut key for the “All” button')
 			.setDesc('Assign shortcut key for the “All” button.')
 			.addText(text => {
-				this.allBtnText = text.setValue(settings.allBtn);
-				this.allBtnText.inputEl.setAttr('readonly', '');
-				this.allBtnText.inputEl.addClass('bc-setting-shortcut-key');
-				return this.allBtnText;
+				this._allBtnText = text.setValue(settings.allBtn);
+				this._allBtnText.inputEl.setAttr('readonly', '');
+				this._allBtnText.inputEl.addClass('bc-setting-shortcut-key');
+				return this._allBtnText;
 			})
 			.then(settingEl => {
 				const setDefaultValue = () => settings.allBtn = DEFAULT_SETTINGS[settingType].allBtn;
@@ -252,7 +248,7 @@ export class SettingTab extends PluginSettingTab {
 				.setTooltip('Custom shortcut key')
 				.onClick(() => {
 					const usedKeys = [...settings.characters, settings.backBtn];
-					this.onClickShortcutKeyEdit(this.allBtnText, 'allBtn', usedKeys);
+					this.onClickShortcutKeyEdit(this._allBtnText, 'allBtn', usedKeys);
 				}),
 			);
 
@@ -260,10 +256,10 @@ export class SettingTab extends PluginSettingTab {
 			.setName('Shortcut key for the “Back” button')
 			.setDesc('Assign shortcut key for the “Back” button.')
 			.addText(text => {
-				this.backBtnText = text.setValue(settings.backBtn);
-				this.backBtnText.inputEl.setAttr('readonly', '');
-				this.backBtnText.inputEl.addClass('bc-setting-shortcut-key');
-				return this.backBtnText;
+				this._backBtnText = text.setValue(settings.backBtn);
+				this._backBtnText.inputEl.setAttr('readonly', '');
+				this._backBtnText.inputEl.addClass('bc-setting-shortcut-key');
+				return this._backBtnText;
 			})
 			.then(settingEl => {
 				const setDefaultValue = () => settings.backBtn = DEFAULT_SETTINGS[settingType].backBtn;
@@ -274,14 +270,14 @@ export class SettingTab extends PluginSettingTab {
 				.setTooltip('Custom shortcut key')
 				.onClick(() => {
 					const usedKeys = [...settings.characters, settings.backBtn];
-					this.onClickShortcutKeyEdit(this.backBtnText, 'backBtn', usedKeys);
+					this.onClickShortcutKeyEdit(this._backBtnText, 'backBtn', usedKeys);
 				}),
 			);
 	}
 
 	private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
 		const settingType = SETTING_TYPE.searchBookmarks;
-		const settings = this.plugin.settings[settingType];
+		const settings = this._plugin.settings[settingType];
 
 		new Setting(detailsEl)
 			.setName('Type of structure in the list view')
@@ -291,7 +287,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(settings.structureType)
 				.onChange(async value => {
 					settings.structureType = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 					this.display();
 				}),
 			)
@@ -312,7 +308,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(settings.sortOrder)
 				.onChange(async value => {
 					settings.sortOrder = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 					this.display();
 				}),
 			)
@@ -327,7 +323,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.recursivelyOpen)
 				.onChange(async value => {
 					settings.recursivelyOpen = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 
@@ -337,7 +333,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.showFooterButtons)
 				.onChange(async value => {
 					settings.showFooterButtons = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 		
@@ -347,7 +343,7 @@ export class SettingTab extends PluginSettingTab {
 			.addToggle(toggle => toggle.setValue(settings.showLegends)
 				.onChange(async value => {
 					settings.showLegends = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 				}),
 			);
 		
@@ -357,7 +353,7 @@ export class SettingTab extends PluginSettingTab {
 			.addColorPicker(colorPicker => colorPicker.setValue(settings.focusColor)
 				.onChange(async value => {
 					settings.focusColor = value;
-					await this.plugin.saveData(this.plugin.settings);
+					await this._plugin.saveData(this._plugin.settings);
 					this.updateStyleSheet();
 				}),
 			)
@@ -375,13 +371,13 @@ export class SettingTab extends PluginSettingTab {
 		text.inputEl.value = 'Press shortcut key';
 		text.inputEl.addClass('class', 'bc-setting-shortcut-key-edit');
 		text.inputEl.focus();
-		const orgKey = this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
+		const orgKey = this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
 		const display = this.display.bind(this);
 
 		text.inputEl.addEventListener('keyup', async (ev: KeyboardEvent) => {
-			this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
+			this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
 			text.setValue(ev.key);
-			await this.plugin.saveSettings();
+			await this._plugin.saveSettings();
 			text.inputEl.removeEventListener('blur', display);
 			display();
 		});
@@ -390,13 +386,13 @@ export class SettingTab extends PluginSettingTab {
 
 		text.inputEl.addEventListener('blur', async () => {
 			if (this.isDuplicateChars([text.inputEl.value, ...usedKeys])) {
-				this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-				await this.plugin.saveSettings();
+				this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
+				await this._plugin.saveSettings();
 				new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
 			}
 			if (RESERVED_KEYS.includes(text.inputEl.value)) {
-				this.plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-				await this.plugin.saveSettings();
+				this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
+				await this._plugin.saveSettings();
 				new Notice(RESERVED_KEYS_MESSAGE, NOTION_DURATION_MS);
 			}
 		});
@@ -409,7 +405,7 @@ export class SettingTab extends PluginSettingTab {
 				.setTooltip('Reset to default')
 				.onClick(async () => {
 					setDefaultValue();
-					await this.plugin.saveSettings();
+					await this._plugin.saveSettings();
 					this.updateStyleSheet();
 					if (refreshView) {
 						this.display();
