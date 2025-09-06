@@ -1,230 +1,230 @@
 .bc-settings {
-	.setting-item {
-		.bc-setting-is-invalid {
-			border-color: red !important;
-		}
-		
-		.bc-setting-shortcut-key {
-			background-color: var(--background-modifier-hover) !important;
-			height: 1.5rem !important;
-			width: 6rem !important;
-			font-size: small;
-		}
-		
-		.bc-setting-shortcut-key-edit {
-			background-color: var(--interactive-accent) !important;
-			color: var(--text-on-accent);
-			width: 8rem !important;
-		}
-	}
+  .setting-item {
+    .bc-setting-is-invalid {
+      border-color: red !important;
+    }
 
-	& details {
-		font-size: var(--font-ui-medium);
-		margin-bottom: 1rem;
-		border: 1px solid #aaa;
-		padding: 0.5rem;
+    .bc-setting-shortcut-key {
+      background-color: var(--background-modifier-hover) !important;
+      height: 1.5rem !important;
+      width: 6rem !important;
+      font-size: small;
+    }
 
-		&:last-child {
-			margin-bottom: 0;
-		}
-	}
+    .bc-setting-shortcut-key-edit {
+      background-color: var(--interactive-accent) !important;
+      color: var(--text-on-accent);
+      width: 8rem !important;
+    }
+  }
+
+  & details {
+    font-size: var(--font-ui-medium);
+    margin-bottom: 1rem;
+    border: 1px solid #aaa;
+    padding: 0.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .modal.bookmarks-caller-modal {
-	width: min(700px, 100%);
+  width: min(700px, 100%);
 
-	& .bc-header {
-		display: flex;
-		gap: 0.25rem;
-		position: absolute;
-		top: 0.5rem;
-		width: calc(100% - 3rem);
+  & .bc-header {
+    display: flex;
+    gap: 0.25rem;
+    position: absolute;
+    top: 0.5rem;
+    width: calc(100% - 3rem);
 
-		& span {
-			overflow: hidden;
-		    text-overflow: ellipsis;
-		    width: 100%;
-		}
-	}
+    & span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  }
 
-	& .bc-buttons-view {
-		margin-top: 0.5rem;
-	}
-	
-	& .bc-leaf-row {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		margin: 0.5rem 0;
+  & .bc-buttons-view {
+    margin-top: 0.5rem;
+  }
 
-		& .bc-shortcut-btn {
-			font-weight: bold;
-			font-size: 1.5rem;
-			min-width: 2rem;
-			max-width: 2rem;
-			min-height: 2rem;
-		    max-height: 2rem;
+  & .bc-leaf-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
 
-			&[readonly] {
-				opacity: 0.5;
-			}
-		}
-		
-		& .bc-leaf-name-btn {
-			width: calc(100% - 2.25rem);
-			min-height: 2rem;
-		    max-height: 2rem;
-			display: grid;
-			justify-content: flex-start;
-			grid-template-columns: 1.4rem 1fr;
+    & .bc-shortcut-btn {
+      font-weight: bold;
+      font-size: 1.5rem;
+      min-width: 2rem;
+      max-width: 2rem;
+      min-height: 2rem;
+      max-height: 2rem;
 
-			&[readonly] {
-				opacity: 0.5;
-			}
+      &[readonly] {
+        opacity: 0.5;
+      }
+    }
 
-			& .bc-favicon {
-				width: 16px;
-				height: 16px;
-				background-size: cover;
-				background-position: center;
-			}
+    & .bc-leaf-name-btn {
+      width: calc(100% - 2.25rem);
+      min-height: 2rem;
+      max-height: 2rem;
+      display: grid;
+      justify-content: flex-start;
+      grid-template-columns: 1.4rem 1fr;
 
-			& .bc-leaf-name {
-				overflow: hidden;
-				text-overflow: ellipsis;
-				font-size: 1rem;
-				text-align: start;
-			}
-		}
+      &[readonly] {
+        opacity: 0.5;
+      }
 
-		&.bc-leaf-row-invisible {
-			visibility: hidden;
+      & .bc-favicon {
+        width: 16px;
+        height: 16px;
+        background-size: cover;
+        background-position: center;
+      }
 
-			& .bc-leaf-name-btn {
-				width: 100%;
-			}
-		}
-	}
-	
-	& .bc-footer {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1rem;
+      & .bc-leaf-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 1rem;
+        text-align: start;
+      }
+    }
 
-		&:has(div) {
-			margin-top: 1rem;
-		}
+    &.bc-leaf-row-invisible {
+      visibility: hidden;
 
-		& .bc-page-nav {
-			width: 100%;
-			display: flex;
-			justify-content: center;
-			gap: 0.5rem;
+      & .bc-leaf-name-btn {
+        width: 100%;
+      }
+    }
+  }
 
-			& .bc-nav-btn {
-				min-width: 4rem;
-				min-height: 2rem;
-				max-height: 2rem;
-				font-weight: bold;
+  & .bc-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
 
-				& svg {
-					margin-right: 0.2rem;
-				}
-			}
+    &:has(div) {
+      margin-top: 1rem;
+    }
 
-			& .bc-nav-btn:first-child {
-				width: 7rem;
-				margin-right: auto;
-			}
+    & .bc-page-nav {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
 
-			& .bc-nav-btn:last-child {
-				width: 7rem;
-				margin-left: auto;
-			}
-		}
+      & .bc-nav-btn {
+        min-width: 4rem;
+        min-height: 2rem;
+        max-height: 2rem;
+        font-weight: bold;
 
-		& .bc-legend {
-			display: flex;
-			gap: 0.25rem;
+        & svg {
+          margin-right: 0.2rem;
+        }
+      }
 
-			& .bc-keys {
-				font-weight: bold;
-			}	
-		}
-	}
+      & .bc-nav-btn:first-child {
+        width: 7rem;
+        margin-right: auto;
+      }
+
+      & .bc-nav-btn:last-child {
+        width: 7rem;
+        margin-left: auto;
+      }
+    }
+
+    & .bc-legend {
+      display: flex;
+      gap: 0.25rem;
+
+      & .bc-keys {
+        font-weight: bold;
+      }
+    }
+  }
 }
 
 .modal.bookmarks-message-modal {
-	& .bm-contents {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1rem 0;
+  & .bm-contents {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
 
-		& .bm-content {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
+    & .bm-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
 
-			& a {
-				word-break: break-all;
-			}
-		}
-	}
+      & a {
+        word-break: break-all;
+      }
+    }
+  }
 }
 
 .prompt.bookmarks-search-modal {
-	& .suggestion-item {
-		display: grid;
-		grid-template-columns: 1.5rem 1fr;
-		align-items: center;
+  & .suggestion-item {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    align-items: center;
 
-		& .bs-favicon {
-			width: 16px;
-			height: 16px;
-			background-size: cover;
-			background-position: center;
-		}
+    & .bs-favicon {
+      width: 16px;
+      height: 16px;
+      background-size: cover;
+      background-position: center;
+    }
 
-		& span {
-			word-break: break-all;
-		}
-	}
+    & span {
+      word-break: break-all;
+    }
+  }
 
-	& .bs-footer {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1rem;
+  & .bs-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
 
-		&:has(div) {
-			padding: 1rem;
-			border-top: 1px solid #aaaa;
-		}
+    &:has(div) {
+      padding: 1rem;
+      border-top: 1px solid #aaaa;
+    }
 
-		& .bs-button {
-			width: 100%;
-			display: flex;
-			justify-content: space-between;
+    & .bs-button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
 
-			& .bs-btn {
-				width: 7rem;
-				min-height: 2rem;
-				max-height: 2rem;
-				font-weight: bold;
+      & .bs-btn {
+        width: 7rem;
+        min-height: 2rem;
+        max-height: 2rem;
+        font-weight: bold;
 
-				& svg {
-					margin-right: 0.2rem;
-				}
-			}
-		}
+        & svg {
+          margin-right: 0.2rem;
+        }
+      }
+    }
 
-		& .bs-legend {
-			display: flex;
-			gap: 0.25rem;
+    & .bs-legend {
+      display: flex;
+      gap: 0.25rem;
 
-			& .bs-keys {
-				font-weight: bold;
-			}	
-		}
-	}
+      & .bs-keys {
+        font-weight: bold;
+      }
+    }
+  }
 }
