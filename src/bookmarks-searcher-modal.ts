@@ -28,7 +28,6 @@ const compareCreationTime =
 
 export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
   private _currentLayerItems: BookmarkItem[] = [];
-  private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
   private get modalSettings(): SearchBookmarksSettings {
     return this._settings.searchBookmarks;
@@ -57,8 +56,8 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
 
     this.setPlaceholder('Search bookmarks');
 
-    this._eventListenerFunc = this.handlingKeyupEvent.bind(this);
-    window.addEventListener('keyup', this._eventListenerFunc);
+    this.registerShortcutKeys();
+
     this.generateFooter(this.modalEl);
     this.modalEl.addClasses(['bookmarks-search-modal', 'bs-modal']);
   }
@@ -69,7 +68,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
   }
 
   onClose(): void {
-    window.removeEventListener('keyup', this._eventListenerFunc);
+    super.onClose();
     this.modalEl.style.removeProperty('--search-modal-focus-color');
   }
 
@@ -163,18 +162,16 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
     return items;
   }
 
-  private handlingKeyupEvent(ev: KeyboardEvent): void {
-    if (ev.key === SHORTCUT_KEY.back && ev.shiftKey) {
+  private registerShortcutKeys(): void {
+    this.scope.register(['Shift'], SHORTCUT_KEY.back, (ev) => {
       this.backToParentLayer();
       ev.preventDefault();
-      return;
-    }
+    });
 
-    if (ev.key === SHORTCUT_KEY.all && ev.shiftKey) {
+    this.scope.register(['Shift'], SHORTCUT_KEY.all, (ev) => {
       this.openAllFiles(this._currentLayerItems);
       ev.preventDefault();
-      return;
-    }
+    });
   }
 
   private backToParentLayer(): void {

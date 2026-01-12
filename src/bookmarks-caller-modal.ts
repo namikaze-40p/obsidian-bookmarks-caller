@@ -57,7 +57,6 @@ export class BookmarksCallerModal extends Modal {
   private _buttonsViewEl: HTMLDivElement;
   private _headerTextEl: HTMLSpanElement;
   private _footerEl: HTMLDivElement;
-  private _eventListenerFunc: (ev: KeyboardEvent) => void;
 
   private get viewItems(): BookmarkItem[] {
     return this._currentLayerItems.slice(
@@ -83,6 +82,7 @@ export class BookmarksCallerModal extends Modal {
   }
 
   onOpen(): void {
+    super.onOpen();
     this.modalEl.addClasses(['bookmarks-caller-modal', 'bc-modal']);
 
     this.modalEl.style.setProperty('--caller-modal-focus-color', this.modalSettings.focusColor);
@@ -92,13 +92,11 @@ export class BookmarksCallerModal extends Modal {
     this.generateContent(this._buttonsViewEl);
     this.generateFooter(this.contentEl);
 
-    this._eventListenerFunc = this.handlingKeyupEvent.bind(this);
-    window.addEventListener('keyup', this._eventListenerFunc);
+    this.registerShortcutKeys();
   }
 
   onClose(): void {
-    window.removeEventListener('keyup', this._eventListenerFunc);
-    this.contentEl.empty();
+    super.onClose();
     this.modalEl.style.removeProperty('--caller-modal-focus-color');
   }
 
@@ -239,30 +237,30 @@ export class BookmarksCallerModal extends Modal {
     this.generateFooter(this.contentEl);
   }
 
-  private handlingKeyupEvent(ev: KeyboardEvent): void {
-    if (this._chars.includes(ev.key)) {
-      this.keyupShortcutKeys(ev.key);
-      ev.preventDefault();
-      return;
-    }
+  private registerShortcutKeys(): void {
+    this._chars.forEach((char) => {
+      this.scope.register([], char, (ev) => {
+        this.keyupShortcutKeys(ev.key);
+        ev.preventDefault();
+      });
+    });
 
-    if ([UP_KEY, DOWN_KEY, LEFT_KEY, RIGHT_KEY].includes(ev.key)) {
-      this.keyupArrowKeys(ev.key);
-      ev.preventDefault();
-      return;
-    }
+    [UP_KEY, DOWN_KEY, LEFT_KEY, RIGHT_KEY].forEach((key) => {
+      this.scope.register([], key, (ev) => {
+        this.keyupArrowKeys(ev.key);
+        ev.preventDefault();
+      });
+    });
 
-    if (ev.key === this.modalSettings.backBtn) {
+    this.scope.register([], this.modalSettings.backBtn, (ev) => {
       this.backToParentLayer();
       ev.preventDefault();
-      return;
-    }
+    });
 
-    if (ev.key === this.modalSettings.allBtn) {
+    this.scope.register([], this.modalSettings.allBtn, (ev) => {
       this.openAllFiles(this._currentLayerItems);
       ev.preventDefault();
-      return;
-    }
+    });
   }
 
   private keyupShortcutKeys(key: string): void {
