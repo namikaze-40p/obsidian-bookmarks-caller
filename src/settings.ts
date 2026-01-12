@@ -1,6 +1,5 @@
 import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import BookmarkCaller from './main';
-import { createStyles, deleteStyles } from './util';
 
 const SETTING_TYPE = {
   openBookmarksCaller: 'openBookmarksCaller',
@@ -126,29 +125,6 @@ export class SettingTab extends PluginSettingTab {
     }
   }
 
-  updateStyleSheet(isTeardown = false): void {
-    deleteStyles();
-    if (isTeardown) {
-      return;
-    }
-
-    const { openBookmarksCaller, searchBookmarks } = this._plugin.settings;
-    const { focusColor } = openBookmarksCaller;
-    const { focusColor: sbFocusColor } = searchBookmarks;
-    createStyles([
-      {
-        selector: '.bc-leaf-name-btn:focus',
-        property: 'outline',
-        value: `2px solid ${focusColor}`,
-      },
-      {
-        selector: '.bookmarks-search-modal .suggestion-item.is-selected',
-        property: 'outline',
-        value: `2px solid ${sbFocusColor}`,
-      },
-    ]);
-  }
-
   private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
     const settingType = SETTING_TYPE.openBookmarksCaller;
     const settings = this._plugin.settings[settingType];
@@ -190,7 +166,6 @@ export class SettingTab extends PluginSettingTab {
         colorPicker.setValue(settings.focusColor).onChange(async (value) => {
           settings.focusColor = value;
           await this._plugin.saveData(this._plugin.settings);
-          this.updateStyleSheet();
         }),
       )
       .then((settingEl) => {
@@ -220,7 +195,6 @@ export class SettingTab extends PluginSettingTab {
             } else {
               inputEl.addClass('bc-setting-is-invalid');
             }
-            this.updateStyleSheet();
           });
 
         textComponent.inputEl.addEventListener('blur', () => {
@@ -380,7 +354,6 @@ export class SettingTab extends PluginSettingTab {
         colorPicker.setValue(settings.focusColor).onChange(async (value) => {
           settings.focusColor = value;
           await this._plugin.saveData(this._plugin.settings);
-          this.updateStyleSheet();
         }),
       )
       .then((settingEl) => {
@@ -441,7 +414,6 @@ export class SettingTab extends PluginSettingTab {
         .onClick(async () => {
           setDefaultValue();
           await this._plugin.saveSettings();
-          this.updateStyleSheet();
           if (refreshView) {
             this.display();
           }

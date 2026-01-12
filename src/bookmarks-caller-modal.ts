@@ -85,6 +85,8 @@ export class BookmarksCallerModal extends Modal {
   onOpen(): void {
     this.modalEl.addClasses(['bookmarks-caller-modal', 'bc-modal']);
 
+    this.modalEl.style.setProperty('--caller-modal-focus-color', this.modalSettings.focusColor);
+
     this.generateHeader(this.contentEl);
     this._buttonsViewEl = this.contentEl.createDiv('bc-buttons-view');
     this.generateContent(this._buttonsViewEl);
@@ -97,6 +99,7 @@ export class BookmarksCallerModal extends Modal {
   onClose(): void {
     window.removeEventListener('keyup', this._eventListenerFunc);
     this.contentEl.empty();
+    this.modalEl.style.removeProperty('--caller-modal-focus-color');
   }
 
   private generateHeader(contentEl: HTMLElement): void {

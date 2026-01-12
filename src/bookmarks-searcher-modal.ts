@@ -63,8 +63,14 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
     this.modalEl.addClasses(['bookmarks-search-modal', 'bs-modal']);
   }
 
+  onOpen(): void {
+    super.onOpen();
+    this.modalEl.style.setProperty('--search-modal-focus-color', this.modalSettings.focusColor);
+  }
+
   onClose(): void {
     window.removeEventListener('keyup', this._eventListenerFunc);
+    this.modalEl.style.removeProperty('--search-modal-focus-color');
   }
 
   getItems(): BookmarkItem[] {

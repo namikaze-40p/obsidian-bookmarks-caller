@@ -41,11 +41,9 @@ export default class BookmarkCaller extends Plugin {
 
     this._settingTab = new SettingTab(this.app, this);
     this.addSettingTab(this._settingTab);
-    this._settingTab.updateStyleSheet();
   }
 
   onunload(): void {
-    this._settingTab.updateStyleSheet(true);
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
   }
 
