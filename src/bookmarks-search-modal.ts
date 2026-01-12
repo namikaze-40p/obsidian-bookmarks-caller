@@ -26,7 +26,7 @@ const compareCreationTime =
     }
   };
 
-export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
+export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
   private _currentLayerItems: BookmarkItem[] = [];
 
   private get modalSettings(): SearchBookmarksSettings {
@@ -141,7 +141,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
     if (this._bookmarksPlugin) {
       const bookmarks = bookmark.items || [];
       const upperLayers = [...this._upperLayers, bookmarks];
-      new BookmarksSearcherModal(
+      new BookmarksSearchModal(
         this.app,
         this._settings,
         this._bookmarksPlugin,
@@ -181,7 +181,7 @@ export class BookmarksSearcherModal extends FuzzySuggestModal<BookmarkItem> {
     if (this._bookmarksPlugin) {
       this._upperLayers.pop();
       const bookmarks = this._upperLayers.at(-1) || [];
-      new BookmarksSearcherModal(
+      new BookmarksSearchModal(
         this.app,
         this._settings,
         this._bookmarksPlugin,
