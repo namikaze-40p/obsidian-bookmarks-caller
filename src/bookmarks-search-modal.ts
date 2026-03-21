@@ -1,4 +1,12 @@
-import { App, FuzzyMatch, FuzzySuggestModal, Platform, setIcon } from 'obsidian';
+import {
+  App,
+  FuzzyMatch,
+  FuzzySuggestModal,
+  Platform,
+  prepareFuzzySearch,
+  renderResults,
+  setIcon,
+} from 'obsidian';
 import { SORT_ORDER, STRUCTURE_TYPE, SearchBookmarksSettings, Settings } from './settings';
 import { BookmarkItem, BookmarksPluginInstance } from './types';
 import { getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
@@ -133,8 +141,21 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
   ): Promise<HTMLElement> {
     const bookmark = item.item;
     await setBookmarkIcon(this.app, suggestionItemEl, bookmark);
-    suggestionItemEl.createSpan('', (spanEl) => spanEl.setText(getDisplayName(this.app, bookmark)));
+    suggestionItemEl.createSpan('', (spanEl) =>
+      this.renderSearchMatch(getDisplayName(this.app, bookmark), spanEl),
+    );
     return suggestionItemEl;
+  }
+
+  private renderSearchMatch(str: string, el: HTMLElement): void {
+    const query = this.inputEl.value;
+    const search = prepareFuzzySearch(query);
+    const result = search(str);
+    if (result) {
+      renderResults(el, str, result);
+    } else {
+      el.setText(str);
+    }
   }
 
   private openBookmarkOfGroup(bookmark: BookmarkItem): void {
