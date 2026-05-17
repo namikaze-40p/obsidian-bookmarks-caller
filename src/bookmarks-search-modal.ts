@@ -127,7 +127,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     });
   }
 
-  async onChooseItem(bookmark: BookmarkItem): Promise<void> {
+  onChooseItem(bookmark: BookmarkItem): void {
     if (bookmark.type === 'group') {
       this.openBookmarkOfGroup(bookmark);
     } else {
@@ -135,16 +135,12 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     }
   }
 
-  async renderSuggestion(
-    item: FuzzyMatch<BookmarkItem>,
-    suggestionItemEl: HTMLElement,
-  ): Promise<HTMLElement> {
+  renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): void {
     const bookmark = item.item;
-    await setBookmarkIcon(this.app, suggestionItemEl, bookmark);
+    setBookmarkIcon(this.app, suggestionItemEl, bookmark);
     suggestionItemEl.createSpan('', (spanEl) =>
       this.renderSearchMatch(getDisplayName(this.app, bookmark), spanEl),
     );
-    return suggestionItemEl;
   }
 
   private renderSearchMatch(str: string, el: HTMLElement): void {
