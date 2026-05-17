@@ -42,6 +42,8 @@ export default class BookmarkCaller extends Plugin {
   }
 
   onunload(): void {
+    // VIEW_TYPE_BC_TMP is a temporary view created and destroyed within a single operation,
+    // so detaching on unload is safe (no persistent user-placed leaf to preserve).
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
   }
 
