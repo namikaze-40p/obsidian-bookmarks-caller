@@ -11,7 +11,6 @@ import {
 } from './types';
 
 const VIEW_TYPE_EMPTY = 'empty';
-const STYLES_ID = 'bookmarks-caller-styles';
 
 export const getEnabledPluginById = (app: App, pluginId: string): PluginInstance | null => {
   return (app as CustomApp)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
