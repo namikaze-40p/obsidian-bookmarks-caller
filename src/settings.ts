@@ -367,6 +367,37 @@ export class SettingTab extends PluginSettingTab {
     return chars.some((char, idx) => chars.slice(idx + 1).includes(char));
   }
 
+  private async handleShortcutKeyup(
+    ev: KeyboardEvent,
+    text: TextComponent,
+    btnName: 'allBtn' | 'backBtn',
+    display: () => void,
+  ): Promise<void> {
+    this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
+    text.setValue(ev.key);
+    await this._plugin.saveSettings();
+    text.inputEl.removeEventListener('blur', display);
+    display();
+  }
+
+  private async handleShortcutBlur(
+    text: TextComponent,
+    btnName: 'allBtn' | 'backBtn',
+    orgKey: string,
+    usedKeys: string[],
+  ): Promise<void> {
+    if (this.isDuplicateChars([text.inputEl.value, ...usedKeys])) {
+      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
+      await this._plugin.saveSettings();
+      new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
+    }
+    if (RESERVED_KEYS.includes(text.inputEl.value)) {
+      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
+      await this._plugin.saveSettings();
+      new Notice(RESERVED_KEYS_MESSAGE, NOTION_DURATION_MS);
+    }
+  }
+
   private onClickShortcutKeyEdit(
     text: TextComponent,
     btnName: 'allBtn' | 'backBtn',
@@ -378,27 +409,14 @@ export class SettingTab extends PluginSettingTab {
     const orgKey = this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
     const display = this.display.bind(this);
 
-    text.inputEl.addEventListener('keyup', async (ev: KeyboardEvent) => {
-      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
-      text.setValue(ev.key);
-      await this._plugin.saveSettings();
-      text.inputEl.removeEventListener('blur', display);
-      display();
+    text.inputEl.addEventListener('keyup', (ev: KeyboardEvent) => {
+      void this.handleShortcutKeyup(ev, text, btnName, display);
     });
 
     text.inputEl.addEventListener('blur', display);
 
-    text.inputEl.addEventListener('blur', async () => {
-      if (this.isDuplicateChars([text.inputEl.value, ...usedKeys])) {
-        this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-        await this._plugin.saveSettings();
-        new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
-      }
-      if (RESERVED_KEYS.includes(text.inputEl.value)) {
-        this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-        await this._plugin.saveSettings();
-        new Notice(RESERVED_KEYS_MESSAGE, NOTION_DURATION_MS);
-      }
+    text.inputEl.addEventListener('blur', () => {
+      void this.handleShortcutBlur(text, btnName, orgKey, usedKeys);
     });
   }
 

@@ -130,12 +130,12 @@ export class BookmarksCallerModal extends Modal {
     for (const [idx, item] of this.viewItems.entries()) {
       const el = contentEl.createDiv('bc-leaf-row');
       const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
-      setupEl(shortcutBtnEl, ['tabIndex', -1], 'bc-shortcut-btn', () =>
-        this.clickItemButton(item, idx),
-      );
+      setupEl(shortcutBtnEl, ['tabIndex', -1], 'bc-shortcut-btn', () => {
+        void this.clickItemButton(item, idx);
+      });
 
       const itemBtnEl = el.createEl('button');
-      setupEl(itemBtnEl, [], 'bc-leaf-name-btn', () => this.clickItemButton(item, idx));
+      setupEl(itemBtnEl, [], 'bc-leaf-name-btn', () => { void this.clickItemButton(item, idx); });
       await setBookmarkIcon(this.app, itemBtnEl, item);
 
       const name = getDisplayName(this.app, item);
@@ -184,9 +184,9 @@ export class BookmarksCallerModal extends Modal {
           const openBtnEl = navEl.createEl('button');
           setIcon(openBtnEl, 'square-stack');
           openBtnEl.createSpan('').setText('All');
-          setupEl(openBtnEl, ['tabIndex', -1], 'bc-nav-btn', () =>
-            this.openAllFiles(this._currentLayerItems),
-          );
+          setupEl(openBtnEl, ['tabIndex', -1], 'bc-nav-btn', () => {
+            void this.openAllFiles(this._currentLayerItems);
+          });
         });
       }
 

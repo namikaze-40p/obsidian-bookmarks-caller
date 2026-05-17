@@ -104,7 +104,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
           openBtnEl.createSpan('').setText('All');
           openBtnEl.setAttr('tabIndex', -1);
           openBtnEl.addClass('bs-btn');
-          openBtnEl.addEventListener('click', () => this.openAllFiles(this._currentLayerItems));
+          openBtnEl.addEventListener('click', () => { void this.openAllFiles(this._currentLayerItems); });
         });
       }
 
