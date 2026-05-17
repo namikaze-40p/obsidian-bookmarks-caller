@@ -82,14 +82,14 @@ export class BookmarksCallerModal extends Modal {
   }
 
   onOpen(): void {
-    super.onOpen();
+    void super.onOpen();
     this.modalEl.addClasses(['bookmarks-caller-modal', 'bc-modal']);
 
     this.modalEl.style.setProperty('--caller-modal-focus-color', this.modalSettings.focusColor);
 
     this.generateHeader(this.contentEl);
     this._buttonsViewEl = this.contentEl.createDiv('bc-buttons-view');
-    this.generateContent(this._buttonsViewEl);
+    void this.generateContent(this._buttonsViewEl);
     this.generateFooter(this.contentEl);
 
     this.registerShortcutKeys();
@@ -221,7 +221,8 @@ export class BookmarksCallerModal extends Modal {
     if (bookmark.type === 'group') {
       this.openBookmarkOfGroup(bookmark, idx);
     } else {
-      openBookmark(this.app, bookmark).then(() => this.close());
+      await openBookmark(this.app, bookmark);
+      this.close();
     }
   }
 
@@ -233,7 +234,7 @@ export class BookmarksCallerModal extends Modal {
     this._currentLayerItems = bookmark.items || [];
     this._groups.push(`${bookmark.title}`);
     this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
-    this.generateContent(this._buttonsViewEl);
+    void this.generateContent(this._buttonsViewEl);
     this.generateFooter(this.contentEl);
   }
 
@@ -258,7 +259,7 @@ export class BookmarksCallerModal extends Modal {
     });
 
     this.scope.register([], this.modalSettings.allBtn, (ev) => {
-      this.openAllFiles(this._currentLayerItems);
+      void this.openAllFiles(this._currentLayerItems);
       ev.preventDefault();
     });
   }
@@ -306,7 +307,7 @@ export class BookmarksCallerModal extends Modal {
         } else {
           this._pagePosition -= 1;
         }
-        this.generateContent(this._buttonsViewEl, this._pagePosition);
+        void this.generateContent(this._buttonsViewEl, this._pagePosition);
         break;
       }
       case RIGHT_KEY: {
@@ -323,7 +324,7 @@ export class BookmarksCallerModal extends Modal {
         } else {
           this._pagePosition += 1;
         }
-        this.generateContent(this._buttonsViewEl, this._pagePosition);
+        void this.generateContent(this._buttonsViewEl, this._pagePosition);
         break;
       }
       default:
@@ -339,7 +340,7 @@ export class BookmarksCallerModal extends Modal {
 
       const { items, pagePosition, focusPosition } = this._histories.at(-1) as History;
       this._currentLayerItems = items;
-      this.generateContent(this._buttonsViewEl, pagePosition, focusPosition);
+      void this.generateContent(this._buttonsViewEl, pagePosition, focusPosition);
       this.generateFooter(this.contentEl);
     }
   }

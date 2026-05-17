@@ -49,7 +49,7 @@ export default class BookmarkCaller extends Plugin {
 
   async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    this.migrateSettingValues();
+    await this.migrateSettingValues();
   }
 
   async saveSettings(): Promise<void> {
@@ -82,7 +82,7 @@ export default class BookmarkCaller extends Plugin {
     if (bookmarksPlugin) {
       if (navigator.clipboard) {
         const data = JSON.stringify({ items: bookmarksPlugin.items });
-        navigator.clipboard
+        void navigator.clipboard
           .writeText(data)
           .then(() => new Notice('Copied bookmarks.json to clipboard.'));
       }

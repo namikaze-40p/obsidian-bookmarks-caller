@@ -71,7 +71,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
   }
 
   onOpen(): void {
-    super.onOpen();
+    void super.onOpen();
     this.modalEl.style.setProperty('--search-modal-focus-color', this.modalSettings.focusColor);
   }
 
@@ -131,7 +131,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     if (bookmark.type === 'group') {
       this.openBookmarkOfGroup(bookmark);
     } else {
-      openBookmark(this.app, bookmark).then(() => this.close());
+      void openBookmark(this.app, bookmark).then(() => this.close());
     }
   }
 
@@ -186,7 +186,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     });
 
     this.scope.register(['Shift'], SHORTCUT_KEY.all, (ev) => {
-      this.openAllFiles(this._currentLayerItems);
+      void this.openAllFiles(this._currentLayerItems);
       ev.preventDefault();
     });
   }
