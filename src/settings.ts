@@ -101,7 +101,7 @@ export class SettingTab extends PluginSettingTab {
     {
       const detailsEl = containerEl.createEl('details', '', (el) => {
         el.createEl('summary', '', (summaryEl) => {
-          summaryEl.setText('For "Open bookmarks caller" command');
+          summaryEl.setText('For "Open modal" command');
         });
       });
       if (this._isOpen.firstDetails) {
@@ -114,7 +114,7 @@ export class SettingTab extends PluginSettingTab {
     {
       const detailsEl = containerEl.createEl('details', '', (el) => {
         el.createEl('summary', '', (summaryEl) => {
-          summaryEl.setText('For "Search bookmarks" command');
+          summaryEl.setText('For "Search" command');
         });
       });
       if (this._isOpen.secondDetails) {

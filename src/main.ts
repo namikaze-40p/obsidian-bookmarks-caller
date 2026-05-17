@@ -21,13 +21,13 @@ export default class BookmarkCaller extends Plugin {
 
     this.addCommand({
       id: 'open-bookmarks-caller',
-      name: 'Open bookmarks caller',
+      name: 'Open modal',
       callback: () => this.openBookmarksCallerModal(),
     });
 
     this.addCommand({
       id: 'search-bookmarks',
-      name: 'Search bookmarks',
+      name: 'Search',
       callback: () => this.openBookmarksSearchModal(),
     });
 

@@ -4,8 +4,8 @@ This is an [Obsidian](https://obsidian.md/) plugin which can easily open bookmar
 
 Open bookmarks with the following commands:
 
-- `Open bookmark caller`: Open bookmarks with keeping the keyboard home position
-- `Search bookmarks`: Search and open bookmarks
+- `Open modal`: Open bookmarks with keeping the keyboard home position
+- `Search`: Search and open bookmarks
 
 Before using this plugin, please do the following:
 
@@ -25,12 +25,12 @@ Before using this plugin, please do the following:
 
 ## How to use
 
-### `Open bookmark caller`: Open bookmarks with keeping the keyboard home position
+### `Open modal`: Open bookmarks with keeping the keyboard home position
 
 1. Call the modal in one of the following ways.
     1. Using hotkey. (**recommend**)
-    1. Click the icon(`Open bookmarks caller`) from the [Ribbon](https://help.obsidian.md/User+interface/Ribbon).
-    1. Selecting `Bookmarks Caller: Open bookmarks caller` from the command palette.
+    1. Click the icon(`Open modal`) from the [Ribbon](https://help.obsidian.md/User+interface/Ribbon).
+    1. Selecting `Bookmarks Caller: Open modal` from the command palette.
 1. Select the bookmark you wish to open in one of the following ways.
     1. Press the one-letter key displayed to the left of the item name. (**recommend**)
     1. Move the cursor with arrow keys and select the item.
@@ -45,8 +45,8 @@ Before using this plugin, please do the following:
 
 1. Call the modal in one of the following ways.
     1. Using hotkey. (**recommend**)
-    1. Click the icon(`Search bookmarks`) from the [Ribbon](https://help.obsidian.md/User+interface/Ribbon).
-    1. Selecting `Bookmarks Caller: Search bookmarks` from the command palette.
+    1. Click the icon(`Search`) from the [Ribbon](https://help.obsidian.md/User+interface/Ribbon).
+    1. Selecting `Bookmarks Caller: Search` from the command palette.
 1. Enter keywords to find a bookmark.
 1. Select the bookmark you wish to open in one of the following ways.
     1. Move the cursor with arrow keys and select the item.
