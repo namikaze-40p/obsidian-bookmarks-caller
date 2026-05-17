@@ -6,7 +6,7 @@
 .bc-settings {
   .setting-item {
     .bc-setting-is-invalid {
-      border-color: red !important;
+      border-color: #ff0000 !important;
     }
 
     .bc-setting-shortcut-key {
@@ -26,7 +26,7 @@
   & details {
     font-size: var(--font-ui-medium);
     margin-bottom: 1rem;
-    border: 1px solid #aaa;
+    border: 1px solid #aaaaaa;
     padding: 0.5rem;
 
     &:last-child {
@@ -211,7 +211,7 @@
 
     &:has(div) {
       padding: 1rem;
-      border-top: 1px solid #aaaa;
+      border-top: 1px solid #aaaaaa;
     }
 
     & .bs-button {
