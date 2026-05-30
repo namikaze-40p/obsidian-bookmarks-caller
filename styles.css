@@ -120,7 +120,7 @@
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
 
-    &:has(div) {
+    &.bc-footer-visible {
       margin-top: 1rem;
     }
 
@@ -209,7 +209,7 @@
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
 
-    &:has(div) {
+    &.bs-footer-visible {
       padding: 1rem;
       border-top: 1px solid #aaaaaa;
     }

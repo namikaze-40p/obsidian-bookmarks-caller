@@ -90,6 +90,9 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 
   private generateFooter(contentEl: HTMLElement): void {
     contentEl.createDiv('bs-footer', (footerEl) => {
+      if (this.modalSettings.showFooterButtons || this.modalSettings.showLegends) {
+        footerEl.addClass('bs-footer-visible');
+      }
       if (this.modalSettings.showFooterButtons) {
         footerEl.createDiv('bs-button', (el) => {
           const backBtnEl = el.createEl('button');
