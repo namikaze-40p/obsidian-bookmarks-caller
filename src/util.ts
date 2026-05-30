@@ -149,6 +149,30 @@ const openBookmarkOfUrl = (app: App, bookmark: BookmarkItem): void => {
   }
 };
 
+export const filterExistingBookmarks = (app: App, items: BookmarkItem[]): BookmarkItem[] => {
+  return items.reduce<BookmarkItem[]>((acc, item) => {
+    switch (item.type) {
+      case 'file':
+        if (app.vault.getAbstractFileByPath(item.path ?? '') instanceof TFile) {
+          acc.push(item);
+        }
+        break;
+      case 'folder':
+        if (app.vault.getAbstractFileByPath(item.path ?? '') instanceof TFolder) {
+          acc.push(item);
+        }
+        break;
+      case 'group':
+        acc.push({ ...item, items: filterExistingBookmarks(app, item.items ?? []) });
+        break;
+      default:
+        acc.push(item);
+        break;
+    }
+    return acc;
+  }, []);
+};
+
 export const openChildFiles = async (
   app: App,
   items: BookmarkItem[],

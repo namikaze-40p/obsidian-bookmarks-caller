@@ -9,7 +9,7 @@ import {
 } from 'obsidian';
 import { SORT_ORDER, STRUCTURE_TYPE, SearchBookmarksSettings, Settings } from './settings';
 import { BookmarkItem, BookmarksPluginInstance } from './types';
-import { getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
+import { filterExistingBookmarks, getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const SHORTCUT_KEY = {
@@ -50,7 +50,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
   ) {
     super(app);
 
-    const clone = structuredClone(this._bookmarks);
+    const clone = filterExistingBookmarks(this.app, structuredClone(this._bookmarks));
     const items =
       this.modalSettings.structureType === STRUCTURE_TYPE.original
         ? clone

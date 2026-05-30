@@ -1,7 +1,7 @@
 import { App, Modal, setIcon } from 'obsidian';
 import { OpenBookmarksCallerSettings, Settings } from './settings';
 import { BookmarkItem, BookmarksPluginInstance } from './types';
-import { getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
+import { filterExistingBookmarks, getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const UP_KEY = 'ArrowUp';
@@ -77,7 +77,7 @@ export class BookmarksCallerModal extends Modal {
     super(app);
 
     this._chars = [...this.modalSettings.characters];
-    this._currentLayerItems = this._bookmarksPlugin.items;
+    this._currentLayerItems = filterExistingBookmarks(this.app, this._bookmarksPlugin.items);
     this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
   }
 
