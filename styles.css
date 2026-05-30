@@ -5,21 +5,21 @@
 
 .bc-settings {
   .setting-item {
-    .bc-setting-is-invalid {
-      border-color: #ff0000 !important;
+    input.bc-setting-is-invalid {
+      border-color: #ff0000;
     }
 
-    .bc-setting-shortcut-key {
-      background-color: var(--background-modifier-hover) !important;
-      height: 1.5rem !important;
-      width: 6rem !important;
+    input.bc-setting-shortcut-key {
+      background-color: var(--background-modifier-hover);
+      height: 1.5rem;
+      width: 6rem;
       font-size: small;
     }
 
-    .bc-setting-shortcut-key-edit {
-      background-color: var(--interactive-accent) !important;
+    input.bc-setting-shortcut-key-edit {
+      background-color: var(--interactive-accent);
       color: var(--text-on-accent);
-      width: 8rem !important;
+      width: 8rem;
     }
   }
 
