@@ -218,10 +218,13 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     }
     const isRecursivelyOpen =
       this.modalSettings.recursivelyOpen && this.modalSettings.structureType === 'original';
-    await openChildFiles(this.app, items, isRecursivelyOpen);
-    if (isTeardown) {
-      this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
-      this.close();
+    try {
+      await openChildFiles(this.app, items, isRecursivelyOpen);
+    } finally {
+      if (isTeardown) {
+        this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
+        this.close();
+      }
     }
   }
 }

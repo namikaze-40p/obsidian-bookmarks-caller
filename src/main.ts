@@ -41,12 +41,6 @@ export default class BookmarkCaller extends Plugin {
     this.addSettingTab(this._settingTab);
   }
 
-  onunload(): void {
-    // VIEW_TYPE_BC_TMP is a temporary view created and destroyed within a single operation,
-    // so detaching on unload is safe (no persistent user-placed leaf to preserve).
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
-  }
-
   async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     await this.migrateSettingValues();

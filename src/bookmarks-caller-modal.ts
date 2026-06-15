@@ -353,10 +353,13 @@ export class BookmarksCallerModal extends Modal {
       await this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE_BC_TMP });
     }
     const isRecursivelyOpen = this.modalSettings.recursivelyOpen;
-    await openChildFiles(this.app, items, isRecursivelyOpen);
-    if (isTeardown) {
-      this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
-      this.close();
+    try {
+      await openChildFiles(this.app, items, isRecursivelyOpen);
+    } finally {
+      if (isTeardown) {
+        this.app.workspace.detachLeavesOfType(VIEW_TYPE_BC_TMP);
+        this.close();
+      }
     }
   }
 }
