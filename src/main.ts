@@ -95,7 +95,7 @@ export default class BookmarkCaller extends Plugin {
       allBtn?: string;
       backBtn?: string;
     };
-    const oldSettings = this.settings as any as OldSettings;
+    const oldSettings = this.settings as unknown as OldSettings;
     if (typeof oldSettings.recursivelyOpen === 'boolean') {
       this.settings.openBookmarksCaller.recursivelyOpen = oldSettings.recursivelyOpen;
       delete oldSettings.recursivelyOpen;
