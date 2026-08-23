@@ -1,9 +1,9 @@
-const tsParser = require("@typescript-eslint/parser");
-const tsPlugin = require("@typescript-eslint/eslint-plugin");
-const js = require("@eslint/js");
-const globals = require("globals");
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import js from "@eslint/js";
+import globals from "globals";
 
-module.exports = [
+export default [
   {
     ignores: ["node_modules/", "main.js"],
   },
