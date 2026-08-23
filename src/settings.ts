@@ -147,6 +147,10 @@ export class SettingTab extends PluginSettingTab {
     super(app, _plugin);
   }
 
+  /**
+   * Uses APIs added in Obsidian 1.13.0, but minAppVersion is intentionally kept lower.
+   * Only called by hosts that know about it (1.13.0+); older hosts fall back to display() below.
+   */
   getSettingDefinitions(): SettingDefinitionItem[] {
     const toDefinition = ({ build, ...text }: SettingItemBuilder): SettingDefinitionRender => ({
       ...text,
