@@ -20,7 +20,7 @@
     "esbuild": "^0.28.1",
     "eslint": "^10.8.0",
     "globals": "^17.7.0",
-    "obsidian": "latest",
+    "obsidian": "^1.13.1",
     "prettier": "3.6.2",
     "tslib": "2.4.0",
     "typescript": "^5.9.2"

@@ -1,4 +1,12 @@
-import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import {
+  App,
+  Notice,
+  PluginSettingTab,
+  Setting,
+  SettingDefinitionItem,
+  SettingDefinitionRender,
+  TextComponent,
+} from 'obsidian';
 import BookmarkCaller from './main';
 
 const SETTING_TYPE = {
@@ -77,6 +85,53 @@ const RESERVED_KEYS_MESSAGE =
   `The key can't be assigned because it's used preferentially by this plugin.` as const;
 const RESERVED_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'];
 
+const RECURSIVELY_OPEN_TEXT = {
+  name: 'Recursively open files under groups',
+  desc: 'When enabled, recursively open files under groups when selected “All” button.',
+} as const;
+const SHOW_FOOTER_BUTTONS_TEXT = {
+  name: 'Show footer buttons',
+  desc: 'When enabled, show footer buttons on modal.',
+} as const;
+const SHOW_LEGENDS_TEXT = {
+  name: 'Show legends',
+  desc: 'When enabled, show legends on modal.',
+} as const;
+const FOCUS_COLOR_TEXT = {
+  name: 'Color of button frame on focus',
+  desc: 'Choice your favorite color.',
+} as const;
+const CHARACTERS_TEXT = {
+  name: 'Characters used for button hints',
+  desc: `Enter ${CHAR_LENGTH.min}~${CHAR_LENGTH.max} non-duplicate alphanumeric characters or symbols.`,
+} as const;
+const ALL_BTN_TEXT = {
+  name: 'Shortcut key for the “All” button',
+  desc: 'Assign shortcut key for the “All” button.',
+} as const;
+const BACK_BTN_TEXT = {
+  name: 'Shortcut key for the “Back” button',
+  desc: 'Assign shortcut key for the “Back” button.',
+} as const;
+const STRUCTURE_TYPE_TEXT = {
+  name: 'Type of structure in the list view',
+  desc: '"flat" displays nested groups in a flattened structure. “original" displays the structure as defined in the Bookmarks core plugin.',
+} as const;
+const SORT_ORDER_TEXT = {
+  name: 'Sort order',
+  desc: `
+				"original" is displayed in the order defined by the Bookmarks core plugin.
+				"newer" is displayed in order of newer bookmark's creation time.
+				“older” is displayed in order of older bookmark's creation time.
+			`,
+} as const;
+
+interface SettingItemBuilder {
+  readonly name: string;
+  readonly desc: string;
+  readonly build: (setting: Setting) => void;
+}
+
 export class SettingTab extends PluginSettingTab {
   private _isOpen = {
     firstDetails: false,
@@ -92,6 +147,29 @@ export class SettingTab extends PluginSettingTab {
     super(app, _plugin);
   }
 
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const toDefinition = ({ build, ...text }: SettingItemBuilder): SettingDefinitionRender => ({
+      ...text,
+      render: build,
+    });
+
+    return [
+      {
+        type: 'group',
+        heading: 'For "Open modal" command',
+        items: this.getOpenBookmarksCallerBuilders(() => this.update()).map(toDefinition),
+      },
+      {
+        type: 'group',
+        heading: 'For "Search" command',
+        items: this.getSearchBookmarksBuilders(() => this.update()).map(toDefinition),
+      },
+    ];
+  }
+
+  /**
+   * @deprecated Fallback rendering for Obsidian versions older than 1.13.0. Use getSettingDefinitions() instead.
+   */
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
@@ -125,43 +203,140 @@ export class SettingTab extends PluginSettingTab {
     }
   }
 
-  private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
+  private getOpenBookmarksCallerBuilders(refresh: () => void): SettingItemBuilder[] {
     const settingType = SETTING_TYPE.openBookmarksCaller;
     const settings = this._plugin.settings[settingType];
 
-    new Setting(detailsEl)
-      .setName(`Recursively open files under groups`)
-      .setDesc('When enabled, recursively open files under groups when selected “All” button.')
+    return [
+      {
+        ...RECURSIVELY_OPEN_TEXT,
+        build: (setting) => this.buildRecursivelyOpenSetting(setting, settings),
+      },
+      {
+        ...SHOW_FOOTER_BUTTONS_TEXT,
+        build: (setting) => this.buildShowFooterButtonsSetting(setting, settings),
+      },
+      {
+        ...SHOW_LEGENDS_TEXT,
+        build: (setting) => this.buildShowLegendsSetting(setting, settings),
+      },
+      {
+        ...FOCUS_COLOR_TEXT,
+        build: (setting) => this.buildFocusColorSetting(setting, settingType, settings, refresh),
+      },
+      {
+        ...CHARACTERS_TEXT,
+        build: (setting) => this.buildCharactersSetting(setting, settingType, settings, refresh),
+      },
+      {
+        ...ALL_BTN_TEXT,
+        build: (setting) => this.buildAllBtnSetting(setting, settingType, settings, refresh),
+      },
+      {
+        ...BACK_BTN_TEXT,
+        build: (setting) => this.buildBackBtnSetting(setting, settingType, settings, refresh),
+      },
+    ];
+  }
+
+  private getSearchBookmarksBuilders(refresh: () => void): SettingItemBuilder[] {
+    const settingType = SETTING_TYPE.searchBookmarks;
+    const settings = this._plugin.settings[settingType];
+
+    return [
+      {
+        ...STRUCTURE_TYPE_TEXT,
+        build: (setting) => this.buildStructureTypeSetting(setting, settingType, settings, refresh),
+      },
+      {
+        ...SORT_ORDER_TEXT,
+        build: (setting) => this.buildSortOrderSetting(setting, settingType, settings, refresh),
+      },
+      {
+        ...RECURSIVELY_OPEN_TEXT,
+        build: (setting) => this.buildRecursivelyOpenSetting(setting, settings),
+      },
+      {
+        ...SHOW_FOOTER_BUTTONS_TEXT,
+        build: (setting) => this.buildShowFooterButtonsSetting(setting, settings),
+      },
+      {
+        ...SHOW_LEGENDS_TEXT,
+        build: (setting) => this.buildShowLegendsSetting(setting, settings),
+      },
+      {
+        ...FOCUS_COLOR_TEXT,
+        build: (setting) => this.buildFocusColorSetting(setting, settingType, settings, refresh),
+      },
+    ];
+  }
+
+  private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
+    this.getOpenBookmarksCallerBuilders(() => this.display()).forEach(({ build }) =>
+      build(new Setting(detailsEl)),
+    );
+  }
+
+  private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
+    this.getSearchBookmarksBuilders(() => this.display()).forEach(({ build }) =>
+      build(new Setting(detailsEl)),
+    );
+  }
+
+  private buildRecursivelyOpenSetting(
+    setting: Setting,
+    settings: OpenBookmarksCallerSettings | SearchBookmarksSettings,
+  ): void {
+    setting
+      .setName(RECURSIVELY_OPEN_TEXT.name)
+      .setDesc(RECURSIVELY_OPEN_TEXT.desc)
       .addToggle((toggle) =>
         toggle.setValue(settings.recursivelyOpen).onChange(async (value) => {
           settings.recursivelyOpen = value;
           await this._plugin.saveData(this._plugin.settings);
         }),
       );
+  }
 
-    new Setting(detailsEl)
-      .setName(`Show footer buttons`)
-      .setDesc('When enabled, show footer buttons on modal.')
+  private buildShowFooterButtonsSetting(
+    setting: Setting,
+    settings: OpenBookmarksCallerSettings | SearchBookmarksSettings,
+  ): void {
+    setting
+      .setName(SHOW_FOOTER_BUTTONS_TEXT.name)
+      .setDesc(SHOW_FOOTER_BUTTONS_TEXT.desc)
       .addToggle((toggle) =>
         toggle.setValue(settings.showFooterButtons).onChange(async (value) => {
           settings.showFooterButtons = value;
           await this._plugin.saveData(this._plugin.settings);
         }),
       );
+  }
 
-    new Setting(detailsEl)
-      .setName(`Show legends`)
-      .setDesc('When enabled, show legends on modal.')
+  private buildShowLegendsSetting(
+    setting: Setting,
+    settings: OpenBookmarksCallerSettings | SearchBookmarksSettings,
+  ): void {
+    setting
+      .setName(SHOW_LEGENDS_TEXT.name)
+      .setDesc(SHOW_LEGENDS_TEXT.desc)
       .addToggle((toggle) =>
         toggle.setValue(settings.showLegends).onChange(async (value) => {
           settings.showLegends = value;
           await this._plugin.saveData(this._plugin.settings);
         }),
       );
+  }
 
-    new Setting(detailsEl)
-      .setName('Color of button frame on focus')
-      .setDesc('Choice your favorite color.')
+  private buildFocusColorSetting(
+    setting: Setting,
+    settingType: keyof Settings,
+    settings: OpenBookmarksCallerSettings | SearchBookmarksSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(FOCUS_COLOR_TEXT.name)
+      .setDesc(FOCUS_COLOR_TEXT.desc)
       .addColorPicker((colorPicker) =>
         colorPicker.setValue(settings.focusColor).onChange(async (value) => {
           settings.focusColor = value;
@@ -171,14 +346,19 @@ export class SettingTab extends PluginSettingTab {
       .then((settingEl) => {
         const setDefaultValue = () =>
           (settings.focusColor = DEFAULT_SETTINGS[settingType].focusColor);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       });
+  }
 
-    new Setting(detailsEl)
-      .setName('Characters used for button hints')
-      .setDesc(
-        `Enter ${CHAR_LENGTH.min}~${CHAR_LENGTH.max} non-duplicate alphanumeric characters or symbols.`,
-      )
+  private buildCharactersSetting(
+    setting: Setting,
+    settingType: typeof SETTING_TYPE.openBookmarksCaller,
+    settings: OpenBookmarksCallerSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(CHARACTERS_TEXT.name)
+      .setDesc(CHARACTERS_TEXT.desc)
       .addText((text) => {
         let orgCharacters = settings.characters;
         const { allBtn, backBtn } = settings;
@@ -217,12 +397,19 @@ export class SettingTab extends PluginSettingTab {
       .then((settingEl) => {
         const setDefaultValue = () =>
           (settings.characters = DEFAULT_SETTINGS[settingType].characters);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       });
+  }
 
-    new Setting(detailsEl)
-      .setName('Shortcut key for the “All” button')
-      .setDesc('Assign shortcut key for the “All” button.')
+  private buildAllBtnSetting(
+    setting: Setting,
+    settingType: typeof SETTING_TYPE.openBookmarksCaller,
+    settings: OpenBookmarksCallerSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(ALL_BTN_TEXT.name)
+      .setDesc(ALL_BTN_TEXT.desc)
       .addText((text) => {
         this._allBtnText = text.setValue(settings.allBtn);
         this._allBtnText.inputEl.setAttr('readonly', '');
@@ -231,7 +418,7 @@ export class SettingTab extends PluginSettingTab {
       })
       .then((settingEl) => {
         const setDefaultValue = () => (settings.allBtn = DEFAULT_SETTINGS[settingType].allBtn);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       })
       .addExtraButton((button) =>
         button
@@ -239,13 +426,20 @@ export class SettingTab extends PluginSettingTab {
           .setTooltip('Custom shortcut key')
           .onClick(() => {
             const usedKeys = [...settings.characters, settings.backBtn];
-            this.onClickShortcutKeyEdit(this._allBtnText, 'allBtn', usedKeys);
+            this.onClickShortcutKeyEdit(this._allBtnText, 'allBtn', usedKeys, refresh);
           }),
       );
+  }
 
-    new Setting(detailsEl)
-      .setName('Shortcut key for the “Back” button')
-      .setDesc('Assign shortcut key for the “Back” button.')
+  private buildBackBtnSetting(
+    setting: Setting,
+    settingType: typeof SETTING_TYPE.openBookmarksCaller,
+    settings: OpenBookmarksCallerSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(BACK_BTN_TEXT.name)
+      .setDesc(BACK_BTN_TEXT.desc)
       .addText((text) => {
         this._backBtnText = text.setValue(settings.backBtn);
         this._backBtnText.inputEl.setAttr('readonly', '');
@@ -254,7 +448,7 @@ export class SettingTab extends PluginSettingTab {
       })
       .then((settingEl) => {
         const setDefaultValue = () => (settings.backBtn = DEFAULT_SETTINGS[settingType].backBtn);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       })
       .addExtraButton((button) =>
         button
@@ -262,20 +456,20 @@ export class SettingTab extends PluginSettingTab {
           .setTooltip('Custom shortcut key')
           .onClick(() => {
             const usedKeys = [...settings.characters, settings.backBtn];
-            this.onClickShortcutKeyEdit(this._backBtnText, 'backBtn', usedKeys);
+            this.onClickShortcutKeyEdit(this._backBtnText, 'backBtn', usedKeys, refresh);
           }),
       );
   }
 
-  private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
-    const settingType = SETTING_TYPE.searchBookmarks;
-    const settings = this._plugin.settings[settingType];
-
-    new Setting(detailsEl)
-      .setName('Type of structure in the list view')
-      .setDesc(
-        '"flat" displays nested groups in a flattened structure. “original" displays the structure as defined in the Bookmarks core plugin.',
-      )
+  private buildStructureTypeSetting(
+    setting: Setting,
+    settingType: typeof SETTING_TYPE.searchBookmarks,
+    settings: SearchBookmarksSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(STRUCTURE_TYPE_TEXT.name)
+      .setDesc(STRUCTURE_TYPE_TEXT.desc)
       .addDropdown((item) =>
         item
           .addOptions(STRUCTURE_TYPE)
@@ -283,24 +477,25 @@ export class SettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             settings.structureType = value;
             await this._plugin.saveData(this._plugin.settings);
-            this.display();
+            refresh();
           }),
       )
       .then((settingEl) => {
         const setDefaultValue = () =>
           (settings.structureType = DEFAULT_SETTINGS[settingType].structureType);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       });
+  }
 
-    new Setting(detailsEl)
-      .setName('Sort order')
-      .setDesc(
-        `
-				"original" is displayed in the order defined by the Bookmarks core plugin. 
-				"newer" is displayed in order of newer bookmark's creation time. 
-				“older” is displayed in order of older bookmark's creation time.
-			`,
-      )
+  private buildSortOrderSetting(
+    setting: Setting,
+    settingType: typeof SETTING_TYPE.searchBookmarks,
+    settings: SearchBookmarksSettings,
+    refresh: () => void,
+  ): void {
+    setting
+      .setName(SORT_ORDER_TEXT.name)
+      .setDesc(SORT_ORDER_TEXT.desc)
       .addDropdown((item) =>
         item
           .addOptions(SORT_ORDER)
@@ -308,58 +503,13 @@ export class SettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             settings.sortOrder = value;
             await this._plugin.saveData(this._plugin.settings);
-            this.display();
+            refresh();
           }),
       )
       .then((settingEl) => {
         const setDefaultValue = () =>
           (settings.sortOrder = DEFAULT_SETTINGS[settingType].sortOrder);
-        this.addResetButton(settingEl, setDefaultValue);
-      });
-
-    new Setting(detailsEl)
-      .setName(`Recursively open files under groups`)
-      .setDesc('When enabled, recursively open files under groups when selected “All” button.')
-      .addToggle((toggle) =>
-        toggle.setValue(settings.recursivelyOpen).onChange(async (value) => {
-          settings.recursivelyOpen = value;
-          await this._plugin.saveData(this._plugin.settings);
-        }),
-      );
-
-    new Setting(detailsEl)
-      .setName(`Show footer buttons`)
-      .setDesc('When enabled, show footer buttons on modal.')
-      .addToggle((toggle) =>
-        toggle.setValue(settings.showFooterButtons).onChange(async (value) => {
-          settings.showFooterButtons = value;
-          await this._plugin.saveData(this._plugin.settings);
-        }),
-      );
-
-    new Setting(detailsEl)
-      .setName(`Show legends`)
-      .setDesc('When enabled, show legends on modal.')
-      .addToggle((toggle) =>
-        toggle.setValue(settings.showLegends).onChange(async (value) => {
-          settings.showLegends = value;
-          await this._plugin.saveData(this._plugin.settings);
-        }),
-      );
-
-    new Setting(detailsEl)
-      .setName('Color of button frame on focus')
-      .setDesc('Choice your favorite color.')
-      .addColorPicker((colorPicker) =>
-        colorPicker.setValue(settings.focusColor).onChange(async (value) => {
-          settings.focusColor = value;
-          await this._plugin.saveData(this._plugin.settings);
-        }),
-      )
-      .then((settingEl) => {
-        const setDefaultValue = () =>
-          (settings.focusColor = DEFAULT_SETTINGS[settingType].focusColor);
-        this.addResetButton(settingEl, setDefaultValue);
+        this.addResetButton(settingEl, setDefaultValue, refresh);
       });
   }
 
@@ -371,13 +521,13 @@ export class SettingTab extends PluginSettingTab {
     ev: KeyboardEvent,
     text: TextComponent,
     btnName: 'allBtn' | 'backBtn',
-    display: () => void,
+    refresh: () => void,
   ): Promise<void> {
     this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
     text.setValue(ev.key);
     await this._plugin.saveSettings();
-    text.inputEl.removeEventListener('blur', display);
-    display();
+    text.inputEl.removeEventListener('blur', refresh);
+    refresh();
   }
 
   private async handleShortcutBlur(
@@ -402,18 +552,18 @@ export class SettingTab extends PluginSettingTab {
     text: TextComponent,
     btnName: 'allBtn' | 'backBtn',
     usedKeys: string[],
+    refresh: () => void,
   ): void {
     text.inputEl.value = 'Press shortcut key';
     text.inputEl.addClass('class', 'bc-setting-shortcut-key-edit');
     text.inputEl.focus();
     const orgKey = this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
-    const display = this.display.bind(this);
 
     text.inputEl.addEventListener('keyup', (ev: KeyboardEvent) => {
-      void this.handleShortcutKeyup(ev, text, btnName, display);
+      void this.handleShortcutKeyup(ev, text, btnName, refresh);
     });
 
-    text.inputEl.addEventListener('blur', display);
+    text.inputEl.addEventListener('blur', refresh);
 
     text.inputEl.addEventListener('blur', () => {
       void this.handleShortcutBlur(text, btnName, orgKey, usedKeys);
@@ -423,7 +573,7 @@ export class SettingTab extends PluginSettingTab {
   private addResetButton(
     settingEl: Setting,
     setDefaultValue: () => void,
-    refreshView = true,
+    refresh: () => void,
   ): void {
     settingEl.addExtraButton((button) =>
       button
@@ -432,9 +582,7 @@ export class SettingTab extends PluginSettingTab {
         .onClick(async () => {
           setDefaultValue();
           await this._plugin.saveSettings();
-          if (refreshView) {
-            this.display();
-          }
+          refresh();
         }),
     );
   }
