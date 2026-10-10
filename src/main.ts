@@ -8,8 +8,8 @@ import { BcTmpView, VIEW_TYPE_BC_TMP } from './view';
 import { getEnabledPluginById } from './util';
 
 export default class BookmarkCaller extends Plugin {
-  settings: Settings;
-  private _settingTab: SettingTab;
+  settings!: Settings;
+  private _settingTab!: SettingTab;
 
   async onload(): Promise<void> {
     await this.loadSettings();
