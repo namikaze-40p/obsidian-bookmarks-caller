@@ -224,8 +224,11 @@ export class BookmarksCallerModal extends Modal {
     if (bookmark.type === 'group') {
       this.openBookmarkOfGroup(bookmark, idx);
     } else {
-      await openBookmark(this.app, bookmark);
-      this.close();
+      try {
+        await openBookmark(this.app, bookmark);
+      } finally {
+        this.close();
+      }
     }
   }
 
