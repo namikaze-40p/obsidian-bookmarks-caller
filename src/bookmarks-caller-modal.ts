@@ -54,9 +54,9 @@ export class BookmarksCallerModal extends Modal {
   private _pagePosition = 0;
   private _focusPosition = 0;
   private _groups: string[] = ['.'];
-  private _buttonsViewEl: HTMLDivElement;
-  private _headerTextEl: HTMLSpanElement;
-  private _footerEl: HTMLDivElement;
+  private _buttonsViewEl!: HTMLDivElement;
+  private _headerTextEl!: HTMLSpanElement;
+  private _footerEl!: HTMLDivElement;
 
   private get viewItems(): BookmarkItem[] {
     return this._currentLayerItems.slice(
