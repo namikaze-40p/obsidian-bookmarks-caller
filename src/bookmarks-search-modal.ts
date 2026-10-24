@@ -134,7 +134,7 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
     if (bookmark.type === 'group') {
       this.openBookmarkOfGroup(bookmark);
     } else {
-      void openBookmark(this.app, bookmark).then(() => this.close());
+      void openBookmark(this.app, bookmark).finally(() => this.close());
     }
   }
 
