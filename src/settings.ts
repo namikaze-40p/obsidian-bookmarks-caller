@@ -84,6 +84,7 @@ const NUMBER_OF_CHARACTERS_MESSAGE = '4 to 10 characters are required.' as const
 const RESERVED_KEYS_MESSAGE =
   `The key can't be assigned because it's used preferentially by this plugin.` as const;
 const RESERVED_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'];
+const MODIFIER_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Fn'];
 
 const RECURSIVELY_OPEN_TEXT = {
   name: 'Recursively open files under groups',
@@ -521,35 +522,21 @@ export class SettingTab extends PluginSettingTab {
     return chars.some((char, idx) => chars.slice(idx + 1).includes(char));
   }
 
-  private async handleShortcutKeyup(
-    ev: KeyboardEvent,
-    text: TextComponent,
+  private async applyShortcutKey(
+    key: string,
     btnName: 'allBtn' | 'backBtn',
+    usedKeys: string[],
     refresh: () => void,
   ): Promise<void> {
-    this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = ev.key;
-    text.setValue(ev.key);
-    await this._plugin.saveSettings();
-    text.inputEl.removeEventListener('blur', refresh);
-    refresh();
-  }
-
-  private async handleShortcutBlur(
-    text: TextComponent,
-    btnName: 'allBtn' | 'backBtn',
-    orgKey: string,
-    usedKeys: string[],
-  ): Promise<void> {
-    if (this.isDuplicateChars([text.inputEl.value, ...usedKeys])) {
-      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-      await this._plugin.saveSettings();
+    if (this.isDuplicateChars([key, ...usedKeys])) {
       new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
-    }
-    if (RESERVED_KEYS.includes(text.inputEl.value)) {
-      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = orgKey;
-      await this._plugin.saveSettings();
+    } else if (RESERVED_KEYS.includes(key)) {
       new Notice(RESERVED_KEYS_MESSAGE, NOTION_DURATION_MS);
+    } else {
+      this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName] = key;
+      await this._plugin.saveSettings();
     }
+    refresh();
   }
 
   private onClickShortcutKeyEdit(
@@ -561,17 +548,37 @@ export class SettingTab extends PluginSettingTab {
     text.inputEl.value = 'Press shortcut key';
     text.inputEl.addClass('bc-setting-shortcut-key-edit');
     text.inputEl.focus();
-    const orgKey = this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
 
-    text.inputEl.addEventListener('keyup', (ev: KeyboardEvent) => {
-      void this.handleShortcutKeyup(ev, text, btnName, refresh);
-    });
+    // Remove all listeners at once when editing ends, so they don't pile up on each edit.
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    text.inputEl.addEventListener('blur', refresh);
+    text.inputEl.addEventListener(
+      'keydown',
+      (ev: KeyboardEvent) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (MODIFIER_KEYS.includes(ev.key)) {
+          return;
+        }
+        controller.abort();
+        if (ev.key === 'Escape') {
+          refresh();
+          return;
+        }
+        void this.applyShortcutKey(ev.key, btnName, usedKeys, refresh);
+      },
+      { signal },
+    );
 
-    text.inputEl.addEventListener('blur', () => {
-      void this.handleShortcutBlur(text, btnName, orgKey, usedKeys);
-    });
+    text.inputEl.addEventListener(
+      'blur',
+      () => {
+        controller.abort();
+        refresh();
+      },
+      { signal },
+    );
   }
 
   private addResetButton(
