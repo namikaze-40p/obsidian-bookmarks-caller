@@ -251,7 +251,7 @@ export class BookmarksCallerModal extends Modal {
     history.focusPosition = idx;
 
     this._currentLayerItems = bookmark.items || [];
-    this._groups.push(`${bookmark.title}`);
+    this._groups.push(bookmark.title ?? '');
     this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
     void this.generateContent(this._buttonsViewEl);
     this.generateFooter(this.contentEl);
