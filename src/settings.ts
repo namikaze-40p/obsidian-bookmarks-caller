@@ -459,7 +459,7 @@ export class SettingTab extends PluginSettingTab {
           .setIcon('pencil')
           .setTooltip('Custom shortcut key')
           .onClick(() => {
-            const usedKeys = [...settings.characters, settings.backBtn];
+            const usedKeys = [...settings.characters, settings.allBtn];
             this.onClickShortcutKeyEdit(this._backBtnText, 'backBtn', usedKeys, refresh);
           }),
       );
