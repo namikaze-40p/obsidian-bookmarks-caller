@@ -383,13 +383,20 @@ export class SettingTab extends PluginSettingTab {
           });
 
         textComponent.inputEl.addEventListener('blur', () => {
-          if (this.isDuplicateChars([...textComponent.inputEl.value, allBtn, backBtn])) {
-            settings.characters = orgCharacters;
+          const { inputEl } = textComponent;
+          const isDuplicate = this.isDuplicateChars([...inputEl.value, allBtn, backBtn]);
+          const isInvalid = !inputEl.validity.valid;
+          if (isDuplicate) {
             new Notice(DUPLICATE_MESSAGE, NOTION_DURATION_MS);
           }
-          if (!textComponent.inputEl.validity.valid) {
-            settings.characters = orgCharacters;
+          if (isInvalid) {
             new Notice(NUMBER_OF_CHARACTERS_MESSAGE, NOTION_DURATION_MS);
+          }
+          if (isDuplicate || isInvalid) {
+            // Restore the last saved value so that the input doesn't keep showing the rejected one.
+            settings.characters = orgCharacters;
+            textComponent.setValue(orgCharacters);
+            inputEl.removeClass('bc-setting-is-invalid');
           }
         });
         textComponent.inputEl.setAttrs({
