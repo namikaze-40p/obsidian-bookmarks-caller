@@ -53,6 +53,7 @@ export class BookmarksCallerModal extends Modal {
   private _buttonMap: Map<string, HTMLButtonElement> = new Map();
   private _pagePosition = 0;
   private _focusPosition = 0;
+  private _renderId = 0;
   private _groups: string[] = ['.'];
   private _buttonsViewEl!: HTMLDivElement;
   private _headerTextEl!: HTMLSpanElement;
@@ -112,12 +113,16 @@ export class BookmarksCallerModal extends Modal {
     pagePosition = 0,
     focusPosition = 0,
   ): Promise<void> {
+    const renderId = ++this._renderId;
     contentEl.empty();
     this._focusPosition = focusPosition;
     this._pagePosition = pagePosition;
 
     if (this.viewItems.length) {
-      await this.generateButtons(contentEl);
+      const isCompleted = await this.generateButtons(contentEl, renderId);
+      if (!isCompleted) {
+        return;
+      }
       this.generateDummyButtons(contentEl);
       (this._buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
       this.updateHeaderText();
@@ -126,7 +131,10 @@ export class BookmarksCallerModal extends Modal {
     }
   }
 
-  private async generateButtons(contentEl: HTMLElement): Promise<void> {
+  /**
+   * Returns false if a newer rendering started while awaiting icons, so that stale buttons are not appended.
+   */
+  private async generateButtons(contentEl: HTMLElement, renderId: number): Promise<boolean> {
     for (const [idx, item] of this.viewItems.entries()) {
       const el = contentEl.createDiv('bc-leaf-row');
       const shortcutBtnEl = el.createEl('button', { text: this._chars.at(idx) });
@@ -137,12 +145,16 @@ export class BookmarksCallerModal extends Modal {
       const itemBtnEl = el.createEl('button');
       setupEl(itemBtnEl, [], 'bc-leaf-name-btn', () => { void this.clickItemButton(item, idx); });
       await setBookmarkIcon(this.app, itemBtnEl, item);
+      if (renderId !== this._renderId) {
+        return false;
+      }
 
       const name = getDisplayName(this.app, item);
       itemBtnEl.createSpan('bc-leaf-name').setText(name || '');
 
       this._buttonMap.set(getButtonId(item), itemBtnEl);
     }
+    return true;
   }
 
   private generateDummyButtons(contentEl: HTMLElement): void {
