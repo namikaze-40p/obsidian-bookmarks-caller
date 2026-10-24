@@ -277,6 +277,9 @@ export class BookmarksCallerModal extends Modal {
   }
 
   private keyupArrowKeys(key: string): void {
+    if (!this.viewItems.length) {
+      return;
+    }
     switch (key) {
       case UP_KEY:
         if (this._focusPosition === 0) {
