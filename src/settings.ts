@@ -559,7 +559,7 @@ export class SettingTab extends PluginSettingTab {
     refresh: () => void,
   ): void {
     text.inputEl.value = 'Press shortcut key';
-    text.inputEl.addClass('class', 'bc-setting-shortcut-key-edit');
+    text.inputEl.addClass('bc-setting-shortcut-key-edit');
     text.inputEl.focus();
     const orgKey = this._plugin.settings[SETTING_TYPE.openBookmarksCaller][btnName];
 
