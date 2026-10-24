@@ -159,7 +159,7 @@ export class BookmarksCallerModal extends Modal {
   }
 
   private generateFooter(contentEl: HTMLElement): void {
-    this._footerEl?.empty();
+    this._footerEl?.remove();
     if (!this.viewItems.length) {
       return;
     }
