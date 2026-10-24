@@ -39,14 +39,18 @@ export const setBookmarkIcon = async (
     case 'url': {
       const webViewerPlugin = getEnabledPluginById(app, 'webviewer') as WebViewerPluginInstance;
       if (webViewerPlugin?.db) {
-        const domain = new URL(bookmark.url || '').hostname;
-        const icon = await webViewerPlugin.db.loadIcon(domain, bookmark.url || '');
-        if (icon) {
-          el.createDiv(
-            'bc-favicon bs-favicon',
-            (iconEl) => (iconEl.style.backgroundImage = `url(${icon})`),
-          );
-          return;
+        try {
+          const domain = new URL(bookmark.url || '').hostname;
+          const icon = await webViewerPlugin.db.loadIcon(domain, bookmark.url || '');
+          if (icon) {
+            el.createDiv(
+              'bc-favicon bs-favicon',
+              (iconEl) => (iconEl.style.backgroundImage = `url(${icon})`),
+            );
+            return;
+          }
+        } catch {
+          // Fall back to the default icon when the URL is invalid or the favicon fails to load.
         }
       }
       return setIcon(el, 'globe-2');
