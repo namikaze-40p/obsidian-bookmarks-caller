@@ -42,7 +42,12 @@ export default class BookmarkCaller extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const data = ((await this.loadData()) ?? {}) as Partial<Settings>;
+    this.settings = {
+      ...data,
+      openBookmarksCaller: { ...DEFAULT_SETTINGS.openBookmarksCaller, ...data.openBookmarksCaller },
+      searchBookmarks: { ...DEFAULT_SETTINGS.searchBookmarks, ...data.searchBookmarks },
+    };
     await this.migrateSettingValues();
   }
 
