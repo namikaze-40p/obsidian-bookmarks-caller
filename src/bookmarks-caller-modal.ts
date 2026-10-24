@@ -160,10 +160,11 @@ export class BookmarksCallerModal extends Modal {
 
   private generateFooter(contentEl: HTMLElement): void {
     this._footerEl?.remove();
-    if (!this.viewItems.length) {
+    // Keep the footer in empty groups so that the "Back" button remains available.
+    if (!this.viewItems.length && this._histories.length <= 1) {
       return;
     }
-    this._footerEl = contentEl.createDiv('bc-footer', (el) => {
+    this._footerEl =contentEl.createDiv('bc-footer', (el) => {
       if (this.modalSettings.showFooterButtons || this.modalSettings.showLegends) {
         el.addClass('bc-footer-visible');
       }
