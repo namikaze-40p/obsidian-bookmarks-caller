@@ -1,14 +1,20 @@
 import { App, Modal, setIcon } from 'obsidian';
 import { OpenBookmarksCallerSettings, Settings } from './settings';
 import { BookmarkItem, BookmarksPluginInstance } from './types';
-import { filterExistingBookmarks, getDisplayName, openBookmark, openChildFiles, setBookmarkIcon } from './util';
+import {
+  UNTITLED_GROUP_NAME,
+  filterExistingBookmarks,
+  getDisplayName,
+  openBookmark,
+  openChildFiles,
+  setBookmarkIcon,
+} from './util';
 import { VIEW_TYPE_BC_TMP } from './view';
 
 const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
 const RIGHT_KEY = 'ArrowRight';
-const UNTITLED_GROUP_NAME = '(no title)';
 const FOOTER_ITEMS = [
   { keys: '↑ | ↓', description: 'Move focus' },
   { keys: '← | →', description: 'Switch pages' },

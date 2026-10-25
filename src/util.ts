@@ -11,6 +11,7 @@ import {
 } from './types';
 
 const VIEW_TYPE_EMPTY = 'empty';
+export const UNTITLED_GROUP_NAME = '(no title)';
 
 export const getEnabledPluginById = (app: App, pluginId: string): PluginInstance | null => {
   return (app as CustomApp)?.internalPlugins?.getEnabledPluginById(pluginId) || null;
@@ -74,6 +75,7 @@ export const getDisplayName = (app: App, bookmark: BookmarkItem): string => {
     case 'search':
       return bookmark.query ?? '';
     case 'group':
+      return UNTITLED_GROUP_NAME;
     case 'graph':
     case 'url':
     default:
