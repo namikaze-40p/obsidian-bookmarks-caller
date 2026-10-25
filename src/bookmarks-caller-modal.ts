@@ -8,6 +8,7 @@ const UP_KEY = 'ArrowUp';
 const DOWN_KEY = 'ArrowDown';
 const LEFT_KEY = 'ArrowLeft';
 const RIGHT_KEY = 'ArrowRight';
+const UNTITLED_GROUP_NAME = '(no title)';
 const FOOTER_ITEMS = [
   { keys: '↑ | ↓', description: 'Move focus' },
   { keys: '← | →', description: 'Switch pages' },
@@ -251,7 +252,7 @@ export class BookmarksCallerModal extends Modal {
     history.focusPosition = idx;
 
     this._currentLayerItems = bookmark.items || [];
-    this._groups.push(bookmark.title ?? '');
+    this._groups.push(bookmark.title || UNTITLED_GROUP_NAME);
     this._histories.push({ items: this._currentLayerItems, pagePosition: 0, focusPosition: 0 });
     void this.generateContent(this._buttonsViewEl);
     this.generateFooter(this.contentEl);
