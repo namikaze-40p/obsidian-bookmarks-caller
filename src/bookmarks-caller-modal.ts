@@ -117,6 +117,7 @@ export class BookmarksCallerModal extends Modal {
     contentEl.empty();
     this._focusPosition = focusPosition;
     this._pagePosition = pagePosition;
+    this.updateHeaderText();
 
     if (this.viewItems.length) {
       const isCompleted = await this.generateButtons(contentEl, renderId);
@@ -125,7 +126,6 @@ export class BookmarksCallerModal extends Modal {
       }
       this.generateDummyButtons(contentEl);
       (this._buttonMap.get(getButtonId(this.viewItems.at(focusPosition))) as HTMLElement)?.focus();
-      this.updateHeaderText();
     } else {
       contentEl.createSpan().setText('No items found in this group.');
     }
