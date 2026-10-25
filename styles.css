@@ -4,8 +4,17 @@
 }
 
 .setting-item {
+  /* Same approach as Obsidian's own error state (e.g. .pdf-findbar .mod-not-found),
+     which also colors the focus ring drawn with box-shadow. */
   input.bc-setting-is-invalid {
-    border-color: #ff0000;
+    --background-modifier-border: rgba(var(--background-modifier-error-rgb), 0.6);
+    --background-modifier-border-focus: rgba(var(--background-modifier-error-rgb), 0.6);
+  }
+
+  /* Some themes draw the input frame with box-shadow instead of border (e.g. --input-border-width: 0). */
+  input.bc-setting-is-invalid,
+  input.bc-setting-is-invalid:focus {
+    box-shadow: 0 0 0 2px rgba(var(--background-modifier-error-rgb), 0.6);
   }
 
   input.bc-setting-shortcut-key {
