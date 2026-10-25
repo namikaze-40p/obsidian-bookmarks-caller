@@ -134,10 +134,6 @@ interface SettingItemBuilder {
 }
 
 export class SettingTab extends PluginSettingTab {
-  private _isOpen = {
-    firstDetails: false,
-    secondDetails: false,
-  };
   private _allBtnText: TextComponent;
   private _backBtnText: TextComponent;
 
@@ -148,10 +144,6 @@ export class SettingTab extends PluginSettingTab {
     super(app, _plugin);
   }
 
-  /**
-   * Uses APIs added in Obsidian 1.13.0, but minAppVersion is intentionally kept lower.
-   * Only called by hosts that know about it (1.13.0+); older hosts fall back to display() below.
-   */
   getSettingDefinitions(): SettingDefinitionItem[] {
     const toDefinition = ({ build, ...text }: SettingItemBuilder): SettingDefinitionRender => ({
       ...text,
@@ -170,42 +162,6 @@ export class SettingTab extends PluginSettingTab {
         items: this.getSearchBookmarksBuilders(() => this.update()).map(toDefinition),
       },
     ];
-  }
-
-  /**
-   * @deprecated Fallback rendering for Obsidian versions older than 1.13.0. Use getSettingDefinitions() instead.
-   */
-  display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-
-    containerEl.addClass('bc-settings');
-
-    {
-      const detailsEl = containerEl.createEl('details', '', (el) => {
-        el.createEl('summary', '', (summaryEl) => {
-          summaryEl.setText('For "Open modal" command');
-        });
-      });
-      if (this._isOpen.firstDetails) {
-        detailsEl.setAttr('open', true);
-      }
-      detailsEl.addEventListener('toggle', () => (this._isOpen.firstDetails = detailsEl.open));
-      this.setForOpenBookmarksCallerCommand(detailsEl);
-    }
-
-    {
-      const detailsEl = containerEl.createEl('details', '', (el) => {
-        el.createEl('summary', '', (summaryEl) => {
-          summaryEl.setText('For "Search" command');
-        });
-      });
-      if (this._isOpen.secondDetails) {
-        detailsEl.setAttr('open', true);
-      }
-      detailsEl.addEventListener('toggle', () => (this._isOpen.secondDetails = detailsEl.open));
-      this.setForSearchBookmarksCommand(detailsEl);
-    }
   }
 
   private getOpenBookmarksCallerBuilders(refresh: () => void): SettingItemBuilder[] {
@@ -274,18 +230,6 @@ export class SettingTab extends PluginSettingTab {
         build: (setting) => this.buildFocusColorSetting(setting, settingType, settings, refresh),
       },
     ];
-  }
-
-  private setForOpenBookmarksCallerCommand(detailsEl: HTMLDetailsElement): void {
-    this.getOpenBookmarksCallerBuilders(() => this.display()).forEach(({ build }) =>
-      build(new Setting(detailsEl)),
-    );
-  }
-
-  private setForSearchBookmarksCommand(detailsEl: HTMLDetailsElement): void {
-    this.getSearchBookmarksBuilders(() => this.display()).forEach(({ build }) =>
-      build(new Setting(detailsEl)),
-    );
   }
 
   private buildRecursivelyOpenSetting(

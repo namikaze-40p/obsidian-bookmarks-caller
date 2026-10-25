@@ -2,7 +2,7 @@
   "id": "bookmarks-caller",
   "name": "Bookmarks Caller",
   "version": "0.6.13",
-  "minAppVersion": "1.9.10",
+  "minAppVersion": "1.13.0",
   "description": "Easily open bookmarks.",
   "author": "namikaze-40p",
   "authorUrl": "https://github.com/namikaze-40p",
