@@ -189,6 +189,11 @@
       outline: 2px solid var(--search-modal-focus-color);
     }
 
+    & .bs-icon {
+      display: flex;
+      align-items: center;
+    }
+
     & .bs-favicon {
       width: 16px;
       height: 16px;

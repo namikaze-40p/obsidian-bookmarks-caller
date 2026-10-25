@@ -140,7 +140,9 @@ export class BookmarksSearchModal extends FuzzySuggestModal<BookmarkItem> {
 
   renderSuggestion(item: FuzzyMatch<BookmarkItem>, suggestionItemEl: HTMLElement): void {
     const bookmark = item.item;
-    void setBookmarkIcon(this.app, suggestionItemEl, bookmark);
+    // Create the icon container first, since the icon may be set asynchronously (e.g. favicon).
+    const iconEl = suggestionItemEl.createDiv('bs-icon');
+    void setBookmarkIcon(this.app, iconEl, bookmark);
     suggestionItemEl.createSpan('', (spanEl) =>
       this.renderSearchMatch(getDisplayName(this.app, bookmark), spanEl),
     );
