@@ -176,7 +176,7 @@ export class BookmarksCallerModal extends Modal {
     if (!this.viewItems.length && this._histories.length <= 1) {
       return;
     }
-    this._footerEl =contentEl.createDiv('bc-footer', (el) => {
+    this._footerEl = contentEl.createDiv('bc-footer', (el) => {
       if (this.modalSettings.showFooterButtons || this.modalSettings.showLegends) {
         el.addClass('bc-footer-visible');
       }
